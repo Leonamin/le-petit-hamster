@@ -1,5 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { MutableRefObject, useEffect, useMemo, useRef } from "react";
+import { useGLTF } from "@react-three/drei";
+import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Group,
   MathUtils,
@@ -17,6 +18,17 @@ import { useGame } from "../state";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
+
+/**
+ * To use a real hamster model instead of the primitive one: drop a `.glb` into
+ * `public/models/` and set MODEL_URL to e.g. "/models/hamster.glb". Then tweak
+ * MODEL_SCALE / MODEL_ROT / MODEL_OFFSET so it stands ~1 unit tall, sits with
+ * its feet near y=0, and faces +Z (the walk direction). No file → primitives.
+ */
+const MODEL_URL: string | null = null;
+const MODEL_SCALE = 1;
+const MODEL_ROT: [number, number, number] = [0, 0, 0]; // e.g. [0, Math.PI, 0] to face +Z
+const MODEL_OFFSET: [number, number, number] = [0, 0, 0];
 
 /**
  * The hamster: a code-built placeholder body + the spherical-walk controller
@@ -204,7 +216,47 @@ export function Hamster({ radius }: { radius: number }) {
 
   return (
     <group ref={group}>
-      <HamsterMesh anim={anim} />
+      {MODEL_URL ? (
+        <Suspense fallback={<HamsterMesh anim={anim} />}>
+          <HamsterModel url={MODEL_URL} anim={anim} />
+        </Suspense>
+      ) : (
+        <HamsterMesh anim={anim} />
+      )}
+    </group>
+  );
+}
+
+/**
+ * Loads a .glb hamster and gives it the same procedural life (walk bounce +
+ * lean). If the model ships its own walk/idle clips, swap this for drei's
+ * useAnimations later. Cloned so HMR / reuse is safe.
+ */
+function HamsterModel({
+  url,
+  anim,
+}: {
+  url: string;
+  anim: MutableRefObject<{ speed: number }>;
+}) {
+  const { scene } = useGLTF(url);
+  const model = useMemo(() => scene.clone(true), [scene]);
+  const root = useRef<Group>(null!);
+  const spd = useRef(0);
+  const phase = useRef(0);
+
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 1 / 30);
+    spd.current = MathUtils.damp(spd.current, anim.current.speed, 8, dt);
+    const s = spd.current;
+    phase.current += dt * (2 + 11 * s);
+    root.current.position.y = Math.abs(Math.sin(phase.current)) * 0.13 * s;
+    root.current.rotation.x = -0.12 * s; // lean into the walk
+  });
+
+  return (
+    <group ref={root}>
+      <primitive object={model} scale={MODEL_SCALE} rotation={MODEL_ROT} position={MODEL_OFFSET} />
     </group>
   );
 }

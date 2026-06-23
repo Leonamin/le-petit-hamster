@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Drop-in .glb hamster loader (CC0 route)
+- The primitive hamster didn't read as a hamster, so wired a model path: set
+  `MODEL_URL` in Hamster.tsx to a `/models/*.glb` and it loads via useGLTF with
+  the primitive as the Suspense fallback (no file → primitives, no crash).
+  `MODEL_SCALE/ROT/OFFSET` align it; procedural bounce+lean still applied.
+- `public/models/README.md` lists where to get CC0/low-poly hamsters (Poly
+  Pizza, Quaternius CC0 animated packs, Kenney, Sketchfab) and how to wire one.
+- TODO: if the chosen model has walk/idle clips, drive them with useAnimations.
+
 ## 2026-06-23 — Hamster looks like a hamster (code primitives)
 - Reshaped the placeholder into a recognisable hamster, still all primitives:
   chubby round body + cream belly, big head with cheek pouches, dark eyes, pink
