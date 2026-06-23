@@ -3,6 +3,25 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Milestone 1 complete: friend + audio + leave-planet
+- **Sleeping friend** (`SleepingFriend.tsx`): own interactable, waking is
+  optional (Golden Rule). Approaching wakes them via `awakenFriend`; the body
+  un-curls and the head lifts, eased with `MathUtils.damp` (frame-rate safe).
+- **Procedural rain ambience** (`audio/`): looping filtered white noise with a
+  slow LFO on the cutoff. No audio asset. Web Audio (not Howler) since it's
+  synthesised. Starts on first gesture (`useAmbience`) per autoplay policy.
+- **Leave-planet** (`DeparturePod.tsx` + store `leavePlanet`): glowing pod;
+  interacting fades to black, bumps `planetEpoch`, resets the hamster to the
+  arrival point, fades back in. One planet for now, so it loops — M2 swaps in a
+  real next planet. CSS-driven `Fade` overlay.
+- Store now supports action-only interactables (`onInteract`, no lines) and
+  per-interactable `prompt`. Hamster freezes while talking or departing and
+  snaps the camera on epoch change.
+- Moved the friend out of `RainPlanet` (planet = static scenery; characters +
+  interactables mounted in `App`).
+- Verified: `pnpm build` clean, dev server serves all new modules.
+- NEXT (M2): extract a Planet abstraction, add a real second planet + travel.
+
 ## 2026-06-23 — Milestone 1: NPC + dialogue
 - Switched package manager to **pnpm** (esbuild build approval via
   `pnpm-workspace.yaml` → `allowBuilds`). Dev/preview bind `0.0.0.0`.

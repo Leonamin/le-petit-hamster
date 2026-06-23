@@ -27,6 +27,7 @@ export function Hamster() {
   // Controller state lives in refs (mutated every frame, never re-rendered).
   const position = useRef(new Vector3(0, PLANET_RADIUS, 0));
   const forward = useRef(new Vector3(0, 0, -1));
+  const epoch = useRef(0);
 
   // Scratch vectors reused each frame to avoid per-frame allocation.
   const tmp = useMemo(
@@ -46,17 +47,28 @@ export function Hamster() {
     const f = forward.current;
     const { up, right, move, camPos, lookAt } = tmp;
 
+    const game = useGame.getState();
+
+    // Leaving a planet bumps the epoch — snap the hamster back to the arrival
+    // point while the screen is black, and snap (don't lerp) the camera too.
+    let snapCamera = false;
+    if (game.planetEpoch !== epoch.current) {
+      epoch.current = game.planetEpoch;
+      pos.set(0, PLANET_RADIUS, 0);
+      f.set(0, 0, -1);
+      snapCamera = true;
+    }
+
     upAt(pos, up);
     // Keep forward tangent to the surface.
     f.addScaledVector(up, -f.dot(up)).normalize();
     right.copy(f).cross(up).normalize(); // forward × up = right
 
-    const game = useGame.getState();
-    const talking = game.dialogue !== null;
+    // Movement is frozen while talking or while leaving — keep moments quiet.
+    const frozen = game.dialogue !== null || game.departing;
 
     move.set(0, 0, 0);
-    if (!talking) {
-      // Movement is frozen while a dialogue is open — keep the moment quiet.
+    if (!frozen) {
       const k = keys.current;
       if (k.forward) move.add(f);
       if (k.backward) move.sub(f);
@@ -81,7 +93,8 @@ export function Hamster() {
       .copy(pos)
       .addScaledVector(up, CAM_HEIGHT)
       .addScaledVector(f, -CAM_DISTANCE);
-    camera.position.lerp(camPos, CAM_SMOOTH);
+    if (snapCamera) camera.position.copy(camPos);
+    else camera.position.lerp(camPos, CAM_SMOOTH);
     camera.up.copy(up);
     lookAt.copy(pos).addScaledVector(up, CAM_LOOK_UP);
     camera.lookAt(lookAt);

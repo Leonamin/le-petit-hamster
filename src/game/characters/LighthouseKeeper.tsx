@@ -30,6 +30,7 @@ export function LighthouseKeeper() {
       id: "lighthouse-keeper",
       position,
       radius: 2.6,
+      prompt: "스페이스 — 말 걸기",
       speaker: "등대지기 쥐",
       lines: LINES,
     });

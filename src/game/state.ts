@@ -13,8 +13,13 @@ export interface Interactable {
   position: Vector3;
   /** How close (world units) the hamster must be to interact. */
   radius: number;
-  speaker: string;
-  lines: string[];
+  /** Prompt shown while in range, e.g. "스페이스 — 말 걸기". */
+  prompt: string;
+  /** Optional storybook lines shown when interacted with. */
+  speaker?: string;
+  lines?: string[];
+  /** Optional side-effect fired the instant the hamster interacts. */
+  onInteract?: () => void;
 }
 
 interface ActiveDialogue {
@@ -28,6 +33,12 @@ interface GameState {
   /** The interactable currently within range, if any. */
   nearbyId: string | null;
   dialogue: ActiveDialogue | null;
+  /** Ids of friends that have been gently woken. */
+  awakenedFriends: string[];
+  /** True while the leave-planet fade is playing. */
+  departing: boolean;
+  /** Bumped on each departure/arrival; controllers reset when it changes. */
+  planetEpoch: number;
 
   register: (item: Interactable) => void;
   unregister: (id: string) => void;
@@ -35,12 +46,17 @@ interface GameState {
   setNearby: (id: string | null) => void;
   /** Talk to whatever is nearby, or advance/close an open dialogue. */
   interact: () => void;
+  awakenFriend: (id: string) => void;
+  leavePlanet: () => void;
 }
 
 export const useGame = create<GameState>((set, get) => ({
   interactables: {},
   nearbyId: null,
   dialogue: null,
+  awakenedFriends: [],
+  departing: false,
+  planetEpoch: 0,
 
   register: (item) =>
     set((s) => ({ interactables: { ...s.interactables, [item.id]: item } })),
@@ -61,6 +77,8 @@ export const useGame = create<GameState>((set, get) => ({
 
   interact: () => {
     const s = get();
+    if (s.departing) return;
+
     if (s.dialogue) {
       const next = s.dialogue.index + 1;
       set({
@@ -71,11 +89,33 @@ export const useGame = create<GameState>((set, get) => ({
       });
       return;
     }
+
     if (s.nearbyId) {
       const item = s.interactables[s.nearbyId];
-      if (item) {
-        set({ dialogue: { speaker: item.speaker, lines: item.lines, index: 0 } });
+      if (!item) return;
+      item.onInteract?.();
+      if (item.lines && item.lines.length > 0) {
+        set({
+          dialogue: { speaker: item.speaker ?? "", lines: item.lines, index: 0 },
+        });
       }
     }
+  },
+
+  awakenFriend: (id) =>
+    set((s) =>
+      s.awakenedFriends.includes(id)
+        ? s
+        : { awakenedFriends: [...s.awakenedFriends, id] },
+    ),
+
+  leavePlanet: () => {
+    if (get().departing) return;
+    // Fade out (CSS ~1.2s) → reset the world while black → fade back in.
+    set({ departing: true, dialogue: null, nearbyId: null });
+    window.setTimeout(() => {
+      set((s) => ({ planetEpoch: s.planetEpoch + 1 }));
+      window.setTimeout(() => set({ departing: false }), 450);
+    }, 1300);
   },
 }));

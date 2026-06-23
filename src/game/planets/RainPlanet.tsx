@@ -11,13 +11,10 @@ import { Lighthouse } from "../objects/Lighthouse";
  */
 export function RainPlanet() {
   const lighthouse = useRef<Group>(null!);
-  const friend = useRef<Group>(null!);
   const rocks = useRef<Group>(null!);
 
   useLayoutEffect(() => {
     placeOnSurface(lighthouse.current, new Vector3(0.2, 1, 0.3), PLANET_RADIUS);
-    // The sleeping hamster friend rests on the far side near the shore.
-    placeOnSurface(friend.current, new Vector3(-0.6, 0.5, -0.7), PLANET_RADIUS, 0.8);
     // A few scattered rocks for landmarks.
     const dirs: [number, number, number, number][] = [
       [0.8, 0.3, -0.4, 0],
@@ -41,14 +38,6 @@ export function RainPlanet() {
 
       <group ref={lighthouse}>
         <Lighthouse />
-      </group>
-
-      {/* Sleeping hamster friend — a soft curled shape. Optional to find. */}
-      <group ref={friend}>
-        <mesh position={[0, 0.28, 0]} scale={[0.5, 0.32, 0.6]}>
-          <sphereGeometry args={[1, 16, 12]} />
-          <meshStandardMaterial color="#caa9d6" roughness={0.9} />
-        </mesh>
       </group>
 
       <group ref={rocks}>

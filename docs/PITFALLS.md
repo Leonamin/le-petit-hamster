@@ -17,6 +17,17 @@ for it twice. Add to this freely — it is the most valuable doc over time.
   Use module-level or `useMemo` scratch vectors.
 - Keep mutable game state in **refs**, not `useState` — state changes re-render.
 
+## Audio
+- **Browsers block audio until a user gesture.** Start the AudioContext from
+  the first pointer/key event, not on mount (see `audio/useAmbience.ts`).
+- StrictMode mounts effects twice in dev — keep `startAmbience` idempotent
+  (a module-level `started` flag) so you don't build the graph twice.
+
+## Animation
+- **Frame-rate-independent easing:** use `MathUtils.damp(current, target, λ, dt)`
+  instead of `current += (target - current) * 0.1`. The naive lerp moves faster
+  at high FPS and feels different on every machine.
+
 ## Known things to watch (not yet hit)
 - Looking straight along the planet's poles can make the tangent basis
   degenerate; `surfaceOrientation` has a fallback but verify when adding poles.

@@ -3,6 +3,8 @@ import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { RainPlanet } from "./game/planets/RainPlanet";
 import { Hamster } from "./game/characters/Hamster";
 import { LighthouseKeeper } from "./game/characters/LighthouseKeeper";
+import { SleepingFriend } from "./game/characters/SleepingFriend";
+import { DeparturePod } from "./game/objects/DeparturePod";
 import { Hud } from "./ui/Hud";
 
 /**
@@ -29,6 +31,8 @@ export function App() {
 
         <RainPlanet />
         <LighthouseKeeper />
+        <SleepingFriend />
+        <DeparturePod />
         <Hamster />
 
         <EffectComposer>

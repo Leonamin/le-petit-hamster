@@ -10,13 +10,13 @@ Success is measured by *feeling* (warm, quiet, curious), not feature count.
 - [x] Mood pass: fog + bloom + vignette + twilight lighting
 - [ ] Deployed to a live URL (Vercel/Netlify/Pages) — do this early!
 
-## Milestone 1 — Rain Planet MVP (the one playable slice)
+## Milestone 1 — Rain Planet MVP (the one playable slice) ✅
 - [x] Hand-authored diorama: lighthouse + landmarks (more polish later)
 - [x] NPC: Mouse Lighthouse Keeper — approach to trigger dialogue
 - [x] Dialogue UI (storybook text, minimal)
-- [ ] Optional friend: sleeping hamster — find & gently wake (optional!)
-- [ ] Ambient audio: rain + soft tone (Howler)
-- [ ] "Leave planet" fade/transition
+- [x] Optional friend: sleeping hamster — find & gently wake (optional!)
+- [x] Ambient audio: procedural rain (Web Audio, no asset)
+- [x] "Leave planet" fade/transition (loops back for now; real travel = M2)
 
 ## Milestone 2 — A second planet + travel
 - [ ] Extract a Planet abstraction from RainPlanet

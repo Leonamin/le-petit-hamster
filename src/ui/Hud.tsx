@@ -1,23 +1,28 @@
+import { useAmbience } from "../audio/useAmbience";
 import { useInteraction } from "../game/systems/useInteraction";
 import { useGame } from "../game/state";
 import { Dialogue } from "./Dialogue";
+import { Fade } from "./Fade";
 
 /**
  * 2D overlay layer (lives outside the Canvas). Owns global interaction input
- * and shows context-sensitive hints + the dialogue box.
+ * and ambience, and shows context-sensitive hints, dialogue, and the fade.
  */
 export function Hud() {
   useInteraction();
-  const nearbyId = useGame((s) => s.nearbyId);
+  useAmbience();
+  const nearby = useGame((s) => (s.nearbyId ? s.interactables[s.nearbyId] : null));
   const dialogue = useGame((s) => s.dialogue);
+  const departing = useGame((s) => s.departing);
 
   return (
     <>
       <Dialogue />
-      {!dialogue && (
+      <Fade />
+      {!dialogue && !departing && (
         <div className="hint">
-          {nearbyId
-            ? "스페이스 — 말 걸기"
+          {nearby
+            ? nearby.prompt
             : "WASD / 화살표로 햄스터를 움직여 행성을 거닐어 보세요"}
         </div>
       )}
