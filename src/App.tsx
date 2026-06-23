@@ -2,6 +2,8 @@ import { Canvas } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { RainPlanet } from "./game/planets/RainPlanet";
 import { Hamster } from "./game/characters/Hamster";
+import { LighthouseKeeper } from "./game/characters/LighthouseKeeper";
+import { Hud } from "./ui/Hud";
 
 /**
  * Root of the experience. The mood (Melancholic / Warm / Quiet — PLANETS.md)
@@ -26,6 +28,7 @@ export function App() {
         />
 
         <RainPlanet />
+        <LighthouseKeeper />
         <Hamster />
 
         <EffectComposer>
@@ -39,7 +42,7 @@ export function App() {
         </EffectComposer>
       </Canvas>
 
-      <div className="hint">WASD / 화살표로 햄스터를 움직여 행성을 거닐어 보세요</div>
+      <Hud />
     </>
   );
 }

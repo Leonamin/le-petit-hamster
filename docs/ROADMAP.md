@@ -11,9 +11,9 @@ Success is measured by *feeling* (warm, quiet, curious), not feature count.
 - [ ] Deployed to a live URL (Vercel/Netlify/Pages) — do this early!
 
 ## Milestone 1 — Rain Planet MVP (the one playable slice)
-- [ ] Hand-authored diorama: lighthouse, shore, a few landmarks
-- [ ] NPC: Mouse Lighthouse Keeper — approach to trigger dialogue
-- [ ] Dialogue UI (storybook text, minimal)
+- [x] Hand-authored diorama: lighthouse + landmarks (more polish later)
+- [x] NPC: Mouse Lighthouse Keeper — approach to trigger dialogue
+- [x] Dialogue UI (storybook text, minimal)
 - [ ] Optional friend: sleeping hamster — find & gently wake (optional!)
 - [ ] Ambient audio: rain + soft tone (Howler)
 - [ ] "Leave planet" fade/transition

@@ -10,6 +10,7 @@ import {
   WALK_SPEED,
 } from "../config";
 import { useKeyboard } from "../systems/useKeyboard";
+import { useGame } from "../state";
 import { surfaceOrientation, upAt } from "../../lib/sphere";
 
 /**
@@ -50,12 +51,18 @@ export function Hamster() {
     f.addScaledVector(up, -f.dot(up)).normalize();
     right.copy(f).cross(up).normalize(); // forward × up = right
 
+    const game = useGame.getState();
+    const talking = game.dialogue !== null;
+
     move.set(0, 0, 0);
-    const k = keys.current;
-    if (k.forward) move.add(f);
-    if (k.backward) move.sub(f);
-    if (k.right) move.add(right);
-    if (k.left) move.sub(right);
+    if (!talking) {
+      // Movement is frozen while a dialogue is open — keep the moment quiet.
+      const k = keys.current;
+      if (k.forward) move.add(f);
+      if (k.backward) move.sub(f);
+      if (k.right) move.add(right);
+      if (k.left) move.sub(right);
+    }
 
     if (move.lengthSq() > 1e-6) {
       move.normalize();
@@ -78,6 +85,18 @@ export function Hamster() {
     camera.up.copy(up);
     lookAt.copy(pos).addScaledVector(up, CAM_LOOK_UP);
     camera.lookAt(lookAt);
+
+    // Proximity: find the closest in-range interactable and report it.
+    let nearest: string | null = null;
+    let bestDist = Infinity;
+    for (const item of Object.values(game.interactables)) {
+      const d = pos.distanceTo(item.position);
+      if (d <= item.radius && d < bestDist) {
+        bestDist = d;
+        nearest = item.id;
+      }
+    }
+    game.setNearby(nearest);
   });
 
   return (
