@@ -3,6 +3,15 @@
 Every non-obvious bug or trap we hit goes here, with the fix, so we never pay
 for it twice. Add to this freely — it is the most valuable doc over time.
 
+## Character controller
+- **Never snap the heading to the input direction every frame.** The original
+  controller did `forward.copy(moveDir)` each frame, and derived `right` from
+  that same forward. Result: pressing S flipped the heading 180° per frame
+  (camera whipped front↔back, net movement ≈ 0); A/D rotated 90°/frame (spun in
+  place). Fix: translate immediately along the input direction, but rotate the
+  heading TOWARD it at a capped rate (`turnRate`), within the tangent plane
+  about `up`. See `Hamster.tsx`.
+
 ## Spherical movement
 - **Forward must be re-projected onto the tangent plane every frame.** As you
   walk across the curve, "up" changes; a stale forward drifts off-surface.

@@ -3,6 +3,21 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Camera fix + tuning tool
+- **Fixed the A/S/D bug.** The controller used to snap the heading to the input
+  direction every frame, which spun the camera and prevented movement (see
+  PITFALLS → Character controller). Now: translate immediately along input,
+  rotate the heading toward it at a capped `turnRate`. W=straight, D/A=smooth
+  arc, S=turn around. No more camera whip.
+- **Camera tuning tool** (`cameraConfig.ts` + `ui/CameraDebug.tsx`): press C to
+  open an overlay; nudge distance/height/lookUp/fov/turnRate live with key
+  pairs; values persist to localStorage. Fly around, find a view you like, read
+  the numbers off the panel → bake into DEFAULTS in cameraConfig.ts.
+- Camera offsets moved out of config.ts into the tunable store. Raised the
+  starting defaults (height 2.6, lookUp 2.0, fov 60) to address "can't see
+  ahead" — but these are placeholders to be dialed in via the tool.
+- NEXT: bake in the camera values the player settles on, then Milestone 2.
+
 ## 2026-06-23 — Milestone 1 complete: friend + audio + leave-planet
 - **Sleeping friend** (`SleepingFriend.tsx`): own interactable, waking is
   optional (Golden Rule). Approaching wakes them via `awakenFriend`; the body

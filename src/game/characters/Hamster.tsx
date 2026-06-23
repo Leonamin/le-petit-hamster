@@ -1,14 +1,8 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { Group, Vector3 } from "three";
-import {
-  CAM_DISTANCE,
-  CAM_HEIGHT,
-  CAM_LOOK_UP,
-  CAM_SMOOTH,
-  PLANET_RADIUS,
-  WALK_SPEED,
-} from "../config";
+import { Group, MathUtils, PerspectiveCamera, Vector3 } from "three";
+import { CAM_SMOOTH, PLANET_RADIUS, WALK_SPEED } from "../config";
+import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
 import { surfaceOrientation, upAt } from "../../lib/sphere";
@@ -59,14 +53,18 @@ export function Hamster() {
       snapCamera = true;
     }
 
+    const cam = useCameraConfig.getState();
+
     upAt(pos, up);
-    // Keep forward tangent to the surface.
+    // `f` is the heading: where the hamster faces and the camera trails from.
+    // Keep it tangent to the surface every frame (up drifts as we walk).
     f.addScaledVector(up, -f.dot(up)).normalize();
-    right.copy(f).cross(up).normalize(); // forward × up = right
+    right.copy(f).cross(up).normalize(); // heading × up = right
 
     // Movement is frozen while talking or while leaving — keep moments quiet.
     const frozen = game.dialogue !== null || game.departing;
 
+    // Input direction in the heading's frame (W=forward, D=right, etc.).
     move.set(0, 0, 0);
     if (!frozen) {
       const k = keys.current;
@@ -78,8 +76,19 @@ export function Hamster() {
 
     if (move.lengthSq() > 1e-6) {
       move.normalize();
-      f.copy(move); // face the direction we walk
+      // Translate immediately along the input direction (responsive).
       pos.addScaledVector(move, WALK_SPEED * dt).setLength(PLANET_RADIUS);
+
+      // Turn the heading TOWARD the input direction at a capped rate — never
+      // snap. This is what stops the camera whipping around on A/S/D and the
+      // in-place spinning. Rotation happens within the tangent plane (about up).
+      const dot = MathUtils.clamp(f.dot(move), -1, 1);
+      const signed = up.dot(camPos.copy(f).cross(move)); // reuse camPos as scratch
+      const sign = signed >= 0 ? 1 : -1;
+      const angle = Math.acos(dot) * sign;
+      const step = MathUtils.clamp(angle, -cam.turnRate * dt, cam.turnRate * dt);
+      f.applyAxisAngle(up, step);
+
       upAt(pos, up); // up changed after moving across the curve
       f.addScaledVector(up, -f.dot(up)).normalize();
     }
@@ -88,15 +97,21 @@ export function Hamster() {
     group.current.position.copy(pos);
     group.current.quaternion.copy(surfaceOrientation(up, f));
 
-    // Follow camera: behind + low, looking slightly upward.
+    // Keep FOV in sync with the (live-tunable) config.
+    if (camera instanceof PerspectiveCamera && camera.fov !== cam.fov) {
+      camera.fov = cam.fov;
+      camera.updateProjectionMatrix();
+    }
+
+    // Follow camera: trails behind the heading, raised, looking ahead/up.
     camPos
       .copy(pos)
-      .addScaledVector(up, CAM_HEIGHT)
-      .addScaledVector(f, -CAM_DISTANCE);
+      .addScaledVector(up, cam.height)
+      .addScaledVector(f, -cam.distance);
     if (snapCamera) camera.position.copy(camPos);
     else camera.position.lerp(camPos, CAM_SMOOTH);
     camera.up.copy(up);
-    lookAt.copy(pos).addScaledVector(up, CAM_LOOK_UP);
+    lookAt.copy(pos).addScaledVector(up, cam.lookUp);
     camera.lookAt(lookAt);
 
     // Proximity: find the closest in-range interactable and report it.

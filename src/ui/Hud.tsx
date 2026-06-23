@@ -1,6 +1,7 @@
 import { useAmbience } from "../audio/useAmbience";
 import { useInteraction } from "../game/systems/useInteraction";
 import { useGame } from "../game/state";
+import { CameraDebug } from "./CameraDebug";
 import { Dialogue } from "./Dialogue";
 import { Fade } from "./Fade";
 
@@ -19,6 +20,7 @@ export function Hud() {
     <>
       <Dialogue />
       <Fade />
+      <CameraDebug />
       {!dialogue && !departing && (
         <div className="hint">
           {nearby

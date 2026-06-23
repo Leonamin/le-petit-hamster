@@ -7,8 +7,6 @@ export const PLANET_RADIUS = 8;
 
 export const WALK_SPEED = 3.2; // world units / second along the surface
 
-// Camera lives close to the ground and looks slightly upward (ART_DIRECTION).
-export const CAM_DISTANCE = 5.5;
-export const CAM_HEIGHT = 1.6;
-export const CAM_LOOK_UP = 1.4; // how far above the hamster the camera aims
-export const CAM_SMOOTH = 0.08; // 0..1 lerp factor; lower = floatier
+// How quickly the follow-camera eases to its target each frame (0..1).
+// Lower = floatier. Distance/height/look/fov live in cameraConfig.ts (tunable).
+export const CAM_SMOOTH = 0.08;
