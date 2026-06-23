@@ -11,7 +11,8 @@ const ROWS: { key: TunableKey; label: string; keys: string }[] = [
   { key: "height", label: "높이 (위)", keys: "- / =" },
   { key: "lookUp", label: "시선 높이", keys: "; / '" },
   { key: "fov", label: "시야각 FOV", keys: ", / ." },
-  { key: "turnRate", label: "선회 속도", keys: "9 / 0" },
+  { key: "turnRate", label: "몸 선회", keys: "9 / 0" },
+  { key: "camFollow", label: "카메라 추적", keys: "O / P" },
 ];
 
 export function CameraDebug() {
@@ -22,13 +23,14 @@ export function CameraDebug() {
   const lookUp = useCameraConfig((s) => s.lookUp);
   const fov = useCameraConfig((s) => s.fov);
   const turnRate = useCameraConfig((s) => s.turnRate);
+  const camFollow = useCameraConfig((s) => s.camFollow);
 
   if (!debug) {
     return <div className="debug-toggle">C — 카메라 디버그</div>;
   }
 
-  const values = { distance, height, lookUp, fov, turnRate };
-  const configLine = `distance:${distance} height:${height} lookUp:${lookUp} fov:${fov} turnRate:${turnRate}`;
+  const values = { distance, height, lookUp, fov, turnRate, camFollow };
+  const configLine = `distance:${distance} height:${height} lookUp:${lookUp} fov:${fov} turnRate:${turnRate} camFollow:${camFollow}`;
 
   return (
     <div className="debug-panel">

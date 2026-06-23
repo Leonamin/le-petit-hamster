@@ -1,11 +1,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { Group, MathUtils, PerspectiveCamera, Vector3 } from "three";
+import { Group, PerspectiveCamera, Vector3 } from "three";
 import { CAM_SMOOTH, PLANET_RADIUS, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
-import { surfaceOrientation, upAt } from "../../lib/sphere";
+import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 /**
  * The hamster: a code-built placeholder body + the spherical-walk controller
@@ -20,7 +20,8 @@ export function Hamster() {
 
   // Controller state lives in refs (mutated every frame, never re-rendered).
   const position = useRef(new Vector3(0, PLANET_RADIUS, 0));
-  const forward = useRef(new Vector3(0, 0, -1));
+  const facing = useRef(new Vector3(0, 0, -1)); // body: where the hamster looks
+  const camHeading = useRef(new Vector3(0, 0, -1)); // camera yaw; input frame
   const epoch = useRef(0);
 
   // Scratch vectors reused each frame to avoid per-frame allocation.
@@ -38,8 +39,9 @@ export function Hamster() {
   useFrame((_, rawDelta) => {
     const dt = Math.min(rawDelta, 1 / 30); // clamp to survive tab-out spikes
     const pos = position.current;
-    const f = forward.current;
     const { up, right, move, camPos, lookAt } = tmp;
+    const head = camHeading.current;
+    const face = facing.current;
 
     const game = useGame.getState();
 
@@ -49,53 +51,53 @@ export function Hamster() {
     if (game.planetEpoch !== epoch.current) {
       epoch.current = game.planetEpoch;
       pos.set(0, PLANET_RADIUS, 0);
-      f.set(0, 0, -1);
+      face.set(0, 0, -1);
+      head.set(0, 0, -1);
       snapCamera = true;
     }
 
     const cam = useCameraConfig.getState();
 
     upAt(pos, up);
-    // `f` is the heading: where the hamster faces and the camera trails from.
+    // The camera's heading defines the input frame: W = into the screen.
     // Keep it tangent to the surface every frame (up drifts as we walk).
-    f.addScaledVector(up, -f.dot(up)).normalize();
-    right.copy(f).cross(up).normalize(); // heading × up = right
+    head.addScaledVector(up, -head.dot(up)).normalize();
+    right.copy(head).cross(up).normalize(); // camHeading × up = right
 
     // Movement is frozen while talking or while leaving — keep moments quiet.
     const frozen = game.dialogue !== null || game.departing;
 
-    // Input direction in the heading's frame (W=forward, D=right, etc.).
+    // Camera-relative input. Vectors sum, so opposite keys (W+S, A+D) cancel
+    // to a stop and adjacent keys (W+D, …) give true diagonal movement.
     move.set(0, 0, 0);
     if (!frozen) {
       const k = keys.current;
-      if (k.forward) move.add(f);
-      if (k.backward) move.sub(f);
+      if (k.forward) move.add(head);
+      if (k.backward) move.sub(head);
       if (k.right) move.add(right);
       if (k.left) move.sub(right);
     }
 
     if (move.lengthSq() > 1e-6) {
       move.normalize();
-      // Translate immediately along the input direction (responsive).
+      // Step directly in the input direction (no arc) — strafing, back-stepping
+      // and diagonals all work as-is.
       pos.addScaledVector(move, WALK_SPEED * dt).setLength(PLANET_RADIUS);
-
-      // Turn the heading TOWARD the input direction at a capped rate — never
-      // snap. This is what stops the camera whipping around on A/S/D and the
-      // in-place spinning. Rotation happens within the tangent plane (about up).
-      const dot = MathUtils.clamp(f.dot(move), -1, 1);
-      const signed = up.dot(camPos.copy(f).cross(move)); // reuse camPos as scratch
-      const sign = signed >= 0 ? 1 : -1;
-      const angle = Math.acos(dot) * sign;
-      const step = MathUtils.clamp(angle, -cam.turnRate * dt, cam.turnRate * dt);
-      f.applyAxisAngle(up, step);
-
       upAt(pos, up); // up changed after moving across the curve
-      f.addScaledVector(up, -f.dot(up)).normalize();
+      move.addScaledVector(up, -move.dot(up)).normalize(); // re-tangent
+      // The body turns to face where it walks…
+      turnToward(face, move, up, cam.turnRate * dt);
     }
+
+    // Keep facing tangent, then let the camera heading trail it (decoupled, so
+    // low camFollow = strafe-style fixed camera, high = turn-to-face).
+    face.addScaledVector(up, -face.dot(up)).normalize();
+    turnToward(head, face, up, cam.camFollow * dt);
+    head.addScaledVector(up, -head.dot(up)).normalize();
 
     // Stand the hamster on the surface, facing its heading.
     group.current.position.copy(pos);
-    group.current.quaternion.copy(surfaceOrientation(up, f));
+    group.current.quaternion.copy(surfaceOrientation(up, face));
 
     // Keep FOV in sync with the (live-tunable) config.
     if (camera instanceof PerspectiveCamera && camera.fov !== cam.fov) {
@@ -103,11 +105,11 @@ export function Hamster() {
       camera.updateProjectionMatrix();
     }
 
-    // Follow camera: trails behind the heading, raised, looking ahead/up.
+    // Follow camera: trails behind the camera heading, raised, looking ahead/up.
     camPos
       .copy(pos)
       .addScaledVector(up, cam.height)
-      .addScaledVector(f, -cam.distance);
+      .addScaledVector(head, -cam.distance);
     if (snapCamera) camera.position.copy(camPos);
     else camera.position.lerp(camPos, CAM_SMOOTH);
     camera.up.copy(up);

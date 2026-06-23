@@ -41,6 +41,27 @@ export function surfaceOrientation(
   return target.setFromRotationMatrix(_basis);
 }
 
+const _turnCross = new Vector3();
+
+/**
+ * Rotate the tangent vector `current` toward `target` about `up`, by at most
+ * `maxRadians`. Both are assumed roughly tangent to the surface and normalised.
+ * Mutates `current` in place. Used to ease headings without snapping.
+ */
+export function turnToward(
+  current: Vector3,
+  target: Vector3,
+  up: Vector3,
+  maxRadians: number,
+): void {
+  const dot = Math.min(1, Math.max(-1, current.dot(target)));
+  if (dot > 0.99999) return; // already aligned
+  const sign = up.dot(_turnCross.crossVectors(current, target)) >= 0 ? 1 : -1;
+  const angle = Math.acos(dot) * sign;
+  const step = Math.max(-maxRadians, Math.min(maxRadians, angle));
+  current.applyAxisAngle(up, step);
+}
+
 /**
  * Place a static prop on the planet surface at a given direction (need not be
  * normalised), standing upright. `spin` rotates it about its own up axis.

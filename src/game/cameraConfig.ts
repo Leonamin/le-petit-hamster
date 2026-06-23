@@ -9,7 +9,13 @@ import { persist } from "zustand/middleware";
  * When values are settled, bake them into DEFAULTS here.
  */
 
-export type TunableKey = "distance" | "height" | "lookUp" | "fov" | "turnRate";
+export type TunableKey =
+  | "distance"
+  | "height"
+  | "lookUp"
+  | "fov"
+  | "turnRate"
+  | "camFollow";
 
 interface CameraConfig {
   /** Distance the camera trails behind the hamster (world units). */
@@ -20,8 +26,10 @@ interface CameraConfig {
   lookUp: number;
   /** Field of view in degrees. */
   fov: number;
-  /** How fast the hamster turns toward its movement direction (rad/s). */
+  /** How fast the hamster's body turns to face its movement direction (rad/s). */
   turnRate: number;
+  /** How fast the camera trails the body's facing (rad/s). 0 = fixed strafe. */
+  camFollow: number;
 
   debug: boolean;
   toggleDebug: () => void;
@@ -34,7 +42,8 @@ const DEFAULTS: Record<TunableKey, number> = {
   height: 2.6,
   lookUp: 2.0,
   fov: 60,
-  turnRate: 3.5,
+  turnRate: 10,
+  camFollow: 2.5,
 };
 
 // [min, max] clamp ranges for each tunable.
@@ -43,7 +52,8 @@ const RANGES: Record<TunableKey, [number, number]> = {
   height: [0, 10],
   lookUp: [-2, 8],
   fov: [30, 90],
-  turnRate: [0.5, 12],
+  turnRate: [0.5, 16],
+  camFollow: [0, 16],
 };
 
 const clamp = (v: number, [lo, hi]: [number, number]) =>
@@ -62,7 +72,7 @@ export const useCameraConfig = create<CameraConfig>()(
       reset: () => set({ ...DEFAULTS }),
     }),
     {
-      name: "lph-camera",
+      name: "lph-camera-v2",
       // Only persist the numbers, not the debug toggle.
       partialize: (s) => ({
         distance: s.distance,
@@ -70,6 +80,7 @@ export const useCameraConfig = create<CameraConfig>()(
         lookUp: s.lookUp,
         fov: s.fov,
         turnRate: s.turnRate,
+        camFollow: s.camFollow,
       }),
     },
   ),

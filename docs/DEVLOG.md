@@ -3,6 +3,17 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Camera-relative 8-direction movement
+- Switched from "turn toward movement" to **camera-relative strafe movement**:
+  input vectors sum, so W+S / A+D cancel to a stop and W+D etc. give diagonals.
+  The hamster steps directly (no arc) in side/back/diagonal directions.
+- **Decoupled body-turn from camera-follow.** `facing` (body) turns toward the
+  movement direction at `turnRate`; `camHeading` (camera yaw + input frame)
+  trails `facing` at the new `camFollow` rate. camFollow=0 → fixed strafe
+  camera; high → turn-to-face feel. Both are tunable in the C overlay.
+- Added `turnToward()` tangent-rotation helper in lib/sphere.ts.
+- Bumped localStorage key to lph-camera-v2 (new defaults incl. camFollow).
+
 ## 2026-06-23 — Camera fix + tuning tool
 - **Fixed the A/S/D bug.** The controller used to snap the heading to the input
   direction every frame, which spun the camera and prevented movement (see

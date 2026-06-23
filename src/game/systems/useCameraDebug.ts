@@ -16,6 +16,8 @@ const NUDGES: Record<string, [TunableKey, number]> = {
   Period: ["fov", 2],
   Digit9: ["turnRate", -0.5],
   Digit0: ["turnRate", 0.5],
+  KeyO: ["camFollow", -0.5],
+  KeyP: ["camFollow", 0.5],
 };
 
 export function useCameraDebug(): void {
