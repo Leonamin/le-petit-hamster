@@ -1,4 +1,4 @@
-import { useAmbience } from "../audio/useAmbience";
+import { useAudio } from "../audio/useAudio";
 import { useInteraction } from "../game/systems/useInteraction";
 import { useGame } from "../game/state";
 import { CameraDebug } from "./CameraDebug";
@@ -12,7 +12,7 @@ import { PlanetTitle } from "./PlanetTitle";
  */
 export function Hud() {
   useInteraction();
-  useAmbience();
+  useAudio();
   const nearby = useGame((s) => (s.nearbyId ? s.interactables[s.nearbyId] : null));
   const dialogue = useGame((s) => s.dialogue);
   const departing = useGame((s) => s.departing);

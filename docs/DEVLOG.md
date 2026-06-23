@@ -3,6 +3,14 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Per-planet procedural audio
+- New `audio/engine.ts`: one AudioContext, a master gain, and one crossfading
+  ambience at a time — rain (filtered noise) on the Rain Planet, a slow
+  tick-tock over a faintly-beating drone on the Clock Planet. `useAudio` starts
+  it on first gesture, switches ambience on planet change, and taps a soft
+  footstep at a walking cadence (reads `playerState.speed`). Replaced the old
+  always-on rain ambience (ambience.ts/useAmbience.ts removed).
+
 ## 2026-06-23 — Ambient particles + atmosphere glow
 - `Atmosphere`: a thin fresnel rim-glow shell (~1.06×radius, additive) that
   haloes each planet's limb without washing the ground — reads as a little

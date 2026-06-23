@@ -15,7 +15,7 @@ import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
-import { playerPosition } from "../playerPosition";
+import { playerPosition, playerState } from "../playerPosition";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
@@ -177,6 +177,7 @@ export function Hamster({ radius }: { radius: number }) {
       turnToward(face, move, up, cam.turnRate * dt);
     }
     anim.current.speed = moving ? 1 : 0;
+    playerState.speed = anim.current.speed; // shared with audio (footsteps)
 
     // Keep facing tangent, then let the camera heading trail it (decoupled, so
     // low camFollow = strafe-style fixed camera, high = turn-to-face).

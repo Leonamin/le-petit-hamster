@@ -6,3 +6,6 @@ import { Vector3 } from "three";
  * Shared module state to avoid threading it through props.
  */
 export const playerPosition = new Vector3(0, 8, 0);
+
+/** Lightweight player state shared with non-React systems (audio, …). */
+export const playerState = { speed: 0 };
