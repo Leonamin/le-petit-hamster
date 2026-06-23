@@ -27,7 +27,7 @@ export function Hud() {
         <div className="hint">
           {nearby
             ? nearby.prompt
-            : "WASD / 화살표로 햄스터를 움직여 행성을 거닐어 보세요"}
+            : "WASD · 화살표 · 클릭(꾹)으로 햄스터를 움직여 보세요"}
         </div>
       )}
     </>

@@ -1,11 +1,20 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { Group, PerspectiveCamera, Vector3 } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import {
+  Group,
+  PerspectiveCamera,
+  Raycaster,
+  Sphere,
+  Vector2,
+  Vector3,
+} from "three";
 import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
+
+const ORIGIN = new Vector3(0, 0, 0);
 
 /**
  * The hamster: a code-built placeholder body + the spherical-walk controller
@@ -16,11 +25,52 @@ import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 export function Hamster({ radius }: { radius: number }) {
   const group = useRef<Group>(null!);
   const keys = useKeyboard();
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
 
   // Latest active-planet radius, read inside the render loop.
   const radiusRef = useRef(radius);
   radiusRef.current = radius;
+
+  // Click-to-move: while a pointer is held on the canvas, walk toward the point
+  // under the cursor (raycast onto the planet sphere). Moving the cursor while
+  // held re-aims; releasing stops.
+  const pointer = useRef({ active: false, ndc: new Vector2() });
+  useEffect(() => {
+    const el = gl.domElement;
+    const toNDC = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      pointer.current.ndc.set(
+        ((e.clientX - r.left) / r.width) * 2 - 1,
+        -(((e.clientY - r.top) / r.height) * 2 - 1),
+      );
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return; // left button only
+      pointer.current.active = true;
+      toNDC(e);
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is best-effort */
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      if (pointer.current.active) toNDC(e);
+    };
+    const onUp = () => {
+      pointer.current.active = false;
+    };
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointercancel", onUp);
+    };
+  }, [gl]);
 
   // Controller state lives in refs (mutated every frame, never re-rendered).
   const position = useRef(new Vector3(0, radius, 0));
@@ -36,6 +86,9 @@ export function Hamster({ radius }: { radius: number }) {
       move: new Vector3(),
       camPos: new Vector3(),
       lookAt: new Vector3(),
+      hit: new Vector3(),
+      raycaster: new Raycaster(),
+      sphere: new Sphere(),
     }),
     [],
   );
@@ -43,7 +96,7 @@ export function Hamster({ radius }: { radius: number }) {
   useFrame((_, rawDelta) => {
     const dt = Math.min(rawDelta, 1 / 30); // clamp to survive tab-out spikes
     const pos = position.current;
-    const { up, right, move, camPos, lookAt } = tmp;
+    const { up, right, move, camPos, lookAt, hit, raycaster, sphere } = tmp;
     const head = camHeading.current;
     const face = facing.current;
 
@@ -72,10 +125,19 @@ export function Hamster({ radius }: { radius: number }) {
     // Movement is frozen while talking or while leaving — keep moments quiet.
     const frozen = game.dialogue !== null || game.departing;
 
-    // Camera-relative input. Vectors sum, so opposite keys (W+S, A+D) cancel
-    // to a stop and adjacent keys (W+D, …) give true diagonal movement.
     move.set(0, 0, 0);
-    if (!frozen) {
+    if (!frozen && pointer.current.active) {
+      // Click-to-move: aim a ray at the planet sphere and head for the hit
+      // point along the surface (great-circle direction). Stop once on top.
+      raycaster.setFromCamera(pointer.current.ndc, camera);
+      sphere.set(ORIGIN, radius);
+      if (raycaster.ray.intersectSphere(sphere, hit) && pos.angleTo(hit) > 0.05) {
+        move.copy(hit).sub(pos); // chord toward the target…
+        move.addScaledVector(up, -move.dot(up)); // …projected onto the surface
+      }
+    } else if (!frozen) {
+      // Camera-relative keyboard input. Vectors sum, so opposite keys (W+S,
+      // A+D) cancel to a stop and adjacent keys (W+D, …) give diagonals.
       const k = keys.current;
       if (k.forward) move.add(head);
       if (k.backward) move.sub(head);

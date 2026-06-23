@@ -3,6 +3,16 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Click-to-move
+- Hold the left mouse button to walk toward the point under the cursor: a ray
+  from the camera is intersected with the planet sphere, and the hamster heads
+  for the hit along the surface (great-circle direction), stopping once on top.
+  Moving the cursor while held re-aims; releasing stops. Pointer capture keeps
+  it working when the cursor leaves the canvas. Pointer input takes precedence
+  over the keyboard and respects the frozen (dialogue/departing) state.
+- Reuses the existing move pipeline (turn-to-face + camera follow), so it feels
+  consistent with keyboard movement.
+
 ## 2026-06-23 — Self-rotation, point-light sun, orbit toggles
 - **Point-light sun** (decay 0) replaces the directional light, so every body is
   lit from the star's actual position. Still casts the planet's shadows.
