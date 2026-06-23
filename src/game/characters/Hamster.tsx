@@ -25,10 +25,11 @@ const ORIGIN = new Vector3(0, 0, 0);
  * MODEL_SCALE / MODEL_ROT / MODEL_OFFSET so it stands ~1 unit tall, sits with
  * its feet near y=0, and faces +Z (the walk direction). No file → primitives.
  */
-const MODEL_URL: string | null = "/models/hamster.glb";
-// This model is elongated (X37 × Y38 × Z112), so squash Z to make it chubbier.
-// X/Y → ~1 unit; Z compressed so it isn't a long sausage.
-const MODEL_SCALE: [number, number, number] = [0.026, 0.026, 0.014];
+// No good hamster model yet → use the primitive hamster. When you have a
+// rounded hamster .glb, drop it in public/models/ and set MODEL_URL; tweak
+// scale/rot/offset so it stands ~1 unit tall, feet at y=0, facing +Z.
+const MODEL_URL: string | null = null;
+const MODEL_SCALE: [number, number, number] = [0.026, 0.026, 0.026];
 const MODEL_ROT: [number, number, number] = [0, 0, 0]; // [0, Math.PI, 0] if it faces backward
 const MODEL_OFFSET: [number, number, number] = [0, 0.49, 0]; // feet touch the ground
 

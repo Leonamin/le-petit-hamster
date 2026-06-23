@@ -1,10 +1,12 @@
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { Group, Vector3 } from "three";
 import { useInteractableProp } from "../systems/useInteractableProp";
+import { AnimalModel } from "./AnimalModel";
 
 /**
- * The Mouse Lighthouse Keeper (Rain Planet, theme: Waiting). Stands beside the
- * lighthouse. Walk close and press Space to hear them. Built from primitives.
+ * The Lighthouse Keeper (Rain Planet, theme: Waiting) — a gentle deer that
+ * stands by the lighthouse. Walk close and press Space to hear them. Uses a
+ * CC0 animated model (Quaternius) playing its Idle clip.
  */
 
 const KEEPER_DIR = new Vector3(0.33, 1, 0.5);
@@ -23,43 +25,18 @@ export function LighthouseKeeper({ radius }: { radius: number }) {
     id: "rain-keeper",
     direction: KEEPER_DIR,
     spin: 0.5,
-    range: 2.6,
+    range: 3,
     prompt: "스페이스 — 말 걸기",
-    speaker: "등대지기 쥐",
+    speaker: "등대지기",
     lines: LINES,
   });
 
   return (
     <group ref={ref}>
-      {/* Body */}
-      <mesh position={[0, 0.34, 0]} scale={[0.4, 0.42, 0.45]} castShadow>
-        <sphereGeometry args={[1, 18, 14]} />
-        <meshStandardMaterial color="#9aa0a8" roughness={0.85} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0, 0.55, 0.28]} scale={0.26} castShadow>
-        <sphereGeometry args={[1, 18, 14]} />
-        <meshStandardMaterial color="#a8aeb6" roughness={0.85} />
-      </mesh>
-      {/* Big round ears */}
-      <mesh position={[-0.18, 0.74, 0.22]} scale={0.15}>
-        <sphereGeometry args={[1, 14, 12]} />
-        <meshStandardMaterial color="#c2a3a8" roughness={0.9} />
-      </mesh>
-      <mesh position={[0.18, 0.74, 0.22]} scale={0.15}>
-        <sphereGeometry args={[1, 14, 12]} />
-        <meshStandardMaterial color="#c2a3a8" roughness={0.9} />
-      </mesh>
-      {/* Nose */}
-      <mesh position={[0, 0.5, 0.55]} scale={0.045}>
-        <sphereGeometry args={[1, 8, 8]} />
-        <meshStandardMaterial color="#5a4a4e" roughness={1} />
-      </mesh>
-      {/* Long thin tail curling back */}
-      <mesh position={[0, 0.2, -0.4]} rotation={[0.6, 0, 0]}>
-        <cylinderGeometry args={[0.02, 0.04, 0.7, 6]} />
-        <meshStandardMaterial color="#c2a3a8" roughness={0.9} />
-      </mesh>
+      <Suspense fallback={null}>
+        {/* A gentle deer keeps the lighthouse — towering, to a hamster. */}
+        <AnimalModel url="/models/Deer.gltf" clip="Idle" scale={0.55} />
+      </Suspense>
     </group>
   );
 }

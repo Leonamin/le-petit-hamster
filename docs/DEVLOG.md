@@ -3,6 +3,19 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Animated CC0 animals as NPCs
+- Added the Quaternius Ultimate Animated Animals pack (CC0, self-contained
+  .gltf, 12 clips each: Idle/Walk/Gallop/Jump…). It has no hamster, so animals
+  are used as NPCs and the hamster hero stays primitive until a real one shows.
+- New `AnimalModel` (useGLTF + useAnimations, SkeletonUtils.clone) loads a
+  .gltf and loops a clip. Lighthouse Keeper → Deer, Windup Artisan → Stag,
+  both playing Idle, scaled ~0.55 (towering over the hamster, "larger than
+  life"). Origins are at feet, so no vertical offset.
+- Reverted the hero hamster to the primitive (the elongated hamster.glb looked
+  like a sausage). Deer.gltf/Stag.gltf copied into public/models/.
+- NEXT: real hamster hero model; maybe animals for the sleeping friends too;
+  per-NPC orientation tweaks once seen.
+
 ## 2026-06-23 — Drop-in .glb hamster loader (CC0 route)
 - The primitive hamster didn't read as a hamster, so wired a model path: set
   `MODEL_URL` in Hamster.tsx to a `/models/*.glb` and it loads via useGLTF with
