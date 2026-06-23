@@ -197,14 +197,18 @@ export function Hamster({ radius }: { radius: number }) {
     }
 
     // Follow camera: trails behind the camera heading, raised, looking ahead/up.
+    // During dialogue, push in a touch for an intimate framing.
+    const talking = game.dialogue !== null;
+    const dist = cam.distance * (talking ? 0.72 : 1);
+    const lookUp = cam.lookUp + (talking ? 0.3 : 0);
     camPos
       .copy(pos)
       .addScaledVector(up, cam.height)
-      .addScaledVector(head, -cam.distance);
+      .addScaledVector(head, -dist);
     if (snapCamera) camera.position.copy(camPos);
     else camera.position.lerp(camPos, CAM_SMOOTH);
     camera.up.copy(up);
-    lookAt.copy(pos).addScaledVector(up, cam.lookUp);
+    lookAt.copy(pos).addScaledVector(up, lookUp);
     camera.lookAt(lookAt);
 
     // Proximity: find the closest in-range interactable and report it.

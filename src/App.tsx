@@ -9,6 +9,7 @@ import {
   Vignette,
 } from "@react-three/postprocessing";
 import { Hamster } from "./game/characters/Hamster";
+import { InteractionMarker } from "./game/objects/InteractionMarker";
 import { SolarSystem } from "./game/SolarSystem";
 import { PLANETS } from "./game/planets/registry";
 import { useGame } from "./game/state";
@@ -38,6 +39,7 @@ export function App() {
         <SolarSystem />
         <ActivePlanet radius={planet.radius} />
         <Hamster radius={planet.radius} />
+        <InteractionMarker />
 
         <EffectComposer>
           <Bloom

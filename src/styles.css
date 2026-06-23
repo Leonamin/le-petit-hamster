@@ -70,6 +70,21 @@ canvas {
   color: rgba(255, 255, 255, 0.4);
 }
 
+.dialogue-caret {
+  display: inline-block;
+  width: 0.5em;
+  margin-left: 1px;
+  border-bottom: 2px solid rgba(255, 217, 160, 0.9);
+  animation: caret-blink 0.8s steps(1) infinite;
+  transform: translateY(-2px);
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
 @keyframes dialogue-in {
   from {
     opacity: 0;

@@ -3,6 +3,16 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Interaction & dialogue polish
+- Floating `InteractionMarker`: a soft emissive chevron bobs above the nearby
+  interactable (points down at it), hidden during dialogue.
+- Dialogue typewriter: lines reveal char-by-char (revealed count in the store
+  so Space/Enter/click first completes the line, then advances). Blinking caret
+  while typing; continue cue shows only when done.
+- Camera pushes in (~0.72× distance, slightly higher look) during dialogue for
+  an intimate framing, easing via the normal follow lerp.
+- NEXT: time-of-day system; save/persistence; light collision.
+
 ## 2026-06-23 — Per-planet procedural audio
 - New `audio/engine.ts`: one AudioContext, a master gain, and one crossfading
   ambience at a time — rain (filtered noise) on the Rain Planet, a slow

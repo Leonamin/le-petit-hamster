@@ -26,6 +26,8 @@ interface ActiveDialogue {
   speaker: string;
   lines: string[];
   index: number;
+  /** Characters of the current line revealed so far (typewriter). */
+  revealed: number;
 }
 
 interface GameState {
@@ -50,6 +52,8 @@ interface GameState {
   setNearby: (id: string | null) => void;
   /** Talk to whatever is nearby, or advance/close an open dialogue. */
   interact: () => void;
+  /** Reveal one more character of the current line (typewriter). */
+  revealStep: () => void;
   awakenFriend: (id: string) => void;
   leavePlanet: () => void;
 }
@@ -86,12 +90,18 @@ export const useGame = create<GameState>((set, get) => ({
     if (s.departing) return;
 
     if (s.dialogue) {
+      const line = s.dialogue.lines[s.dialogue.index];
+      if (s.dialogue.revealed < line.length) {
+        // Still typing → reveal the whole line first.
+        set({ dialogue: { ...s.dialogue, revealed: line.length } });
+        return;
+      }
       const next = s.dialogue.index + 1;
       set({
         dialogue:
           next >= s.dialogue.lines.length
             ? null
-            : { ...s.dialogue, index: next },
+            : { ...s.dialogue, index: next, revealed: 0 },
       });
       return;
     }
@@ -102,11 +112,19 @@ export const useGame = create<GameState>((set, get) => ({
       item.onInteract?.();
       if (item.lines && item.lines.length > 0) {
         set({
-          dialogue: { speaker: item.speaker ?? "", lines: item.lines, index: 0 },
+          dialogue: { speaker: item.speaker ?? "", lines: item.lines, index: 0, revealed: 0 },
         });
       }
     }
   },
+
+  revealStep: () =>
+    set((s) => {
+      if (!s.dialogue) return {};
+      const len = s.dialogue.lines[s.dialogue.index].length;
+      if (s.dialogue.revealed >= len) return {};
+      return { dialogue: { ...s.dialogue, revealed: s.dialogue.revealed + 1 } };
+    }),
 
   awakenFriend: (id) =>
     set((s) =>
