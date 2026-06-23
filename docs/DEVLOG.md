@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Hamster procedural animation
+- The hamster is now alive: the controller exposes a 0..1 walk amount (`anim`),
+  and the mesh drives a bounce + forward lean + waddle + ear flop + tail sway
+  while walking, easing to a gentle breathing idle when still. No keyframes, no
+  asset — all procedural in HamsterMesh's useFrame (eased with MathUtils.damp).
+- Ears were made slightly elongated so their flop reads; head + nose grouped to
+  nod together; added a little tail nub.
+- NEXT (quality pass): real rain on the Rain Planet, then per-planet ambience.
+
 ## 2026-06-23 — Click-to-move
 - Hold the left mouse button to walk toward the point under the cursor: a ray
   from the camera is intersected with the planet sphere, and the hamster heads

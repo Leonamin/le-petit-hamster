@@ -1,7 +1,9 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { MutableRefObject, useEffect, useMemo, useRef } from "react";
 import {
   Group,
+  MathUtils,
+  Mesh,
   PerspectiveCamera,
   Raycaster,
   Sphere,
@@ -77,6 +79,8 @@ export function Hamster({ radius }: { radius: number }) {
   const facing = useRef(new Vector3(0, 0, -1)); // body: where the hamster looks
   const camHeading = useRef(new Vector3(0, 0, -1)); // camera yaw; input frame
   const epoch = useRef(0);
+  // Drives the mesh's procedural animation: 1 while walking, 0 while still.
+  const anim = useRef({ speed: 0 });
 
   // Scratch vectors reused each frame to avoid per-frame allocation.
   const tmp = useMemo(
@@ -145,7 +149,8 @@ export function Hamster({ radius }: { radius: number }) {
       if (k.left) move.sub(right);
     }
 
-    if (move.lengthSq() > 1e-6) {
+    const moving = move.lengthSq() > 1e-6;
+    if (moving) {
       move.normalize();
       // Step directly in the input direction (no arc) — strafing, back-stepping
       // and diagonals all work as-is.
@@ -155,6 +160,7 @@ export function Hamster({ radius }: { radius: number }) {
       // The body turns to face where it walks…
       turnToward(face, move, up, cam.turnRate * dt);
     }
+    anim.current.speed = moving ? 1 : 0;
 
     // Keep facing tangent, then let the camera heading trail it (decoupled, so
     // low camFollow = strafe-style fixed camera, high = turn-to-face).
@@ -198,39 +204,101 @@ export function Hamster({ radius }: { radius: number }) {
 
   return (
     <group ref={group}>
-      <HamsterMesh />
+      <HamsterMesh anim={anim} />
     </group>
   );
 }
 
-/** Placeholder hamster built from primitives. Local +Z is "front". */
-function HamsterMesh() {
+const BODY_SCALE = new Vector3(0.55, 0.45, 0.7);
+
+/**
+ * Placeholder hamster built from primitives, with procedural animation.
+ * Local +Z is "front". `anim.speed` (0..1) drives a walk bounce + lean +
+ * ear/tail sway; when idle it just breathes. No keyframes, no asset.
+ */
+function HamsterMesh({ anim }: { anim: MutableRefObject<{ speed: number }> }) {
+  const root = useRef<Group>(null!);
+  const body = useRef<Mesh>(null!);
+  const head = useRef<Group>(null!);
+  const earL = useRef<Mesh>(null!);
+  const earR = useRef<Mesh>(null!);
+  const tail = useRef<Group>(null!);
+  const phase = useRef(0);
+  const spd = useRef(0);
+
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 1 / 30);
+    const time = performance.now() / 1000;
+    // Ease the walk amount so starts/stops are soft.
+    spd.current = MathUtils.damp(spd.current, anim.current.speed, 8, dt);
+    const s = spd.current;
+    phase.current += dt * (2 + 11 * s); // scurrying little legs
+
+    const step = Math.sin(phase.current); // step cycle
+    const hop = Math.abs(Math.sin(phase.current)) * 0.13 * s; // bounce each step
+    const breathe = Math.sin(time * 1.8) * 0.03 * (1 - s); // only while still
+
+    // Root: bounce up, lean into the walk (+Z is forward), gentle waddle.
+    root.current.position.y = hop;
+    root.current.rotation.x = -0.16 * s;
+    root.current.rotation.z = step * 0.07 * s;
+
+    // Body: squash/stretch with the bounce; breathe when idle.
+    const stretch = 1 + hop * 0.7 + breathe;
+    body.current.scale.set(
+      BODY_SCALE.x / Math.sqrt(stretch),
+      BODY_SCALE.y * stretch,
+      BODY_SCALE.z / Math.sqrt(stretch),
+    );
+
+    // Head: tiny nod.
+    head.current.rotation.x = step * 0.06 * s + breathe;
+
+    // Ears: flop with each step (elongated, so the tilt reads).
+    earL.current.rotation.z = 0.25 + step * 0.35 * s;
+    earR.current.rotation.z = -0.25 - step * 0.35 * s;
+
+    // Tail: sway side to side.
+    tail.current.rotation.z = step * 0.5 * s;
+  });
+
   return (
-    <group>
+    <group ref={root}>
       {/* Body — sits just above the surface (feet near local origin). */}
-      <mesh position={[0, 0.42, 0]} scale={[0.55, 0.45, 0.7]} castShadow>
+      <mesh ref={body} position={[0, 0.42, 0]} scale={[0.55, 0.45, 0.7]} castShadow>
         <sphereGeometry args={[1, 20, 16]} />
         <meshStandardMaterial color="#d9b08c" roughness={0.85} />
       </mesh>
-      {/* Head, leaning toward +Z. */}
-      <mesh position={[0, 0.55, 0.45]} scale={0.34} castShadow>
-        <sphereGeometry args={[1, 20, 16]} />
-        <meshStandardMaterial color="#e6c4a0" roughness={0.85} />
-      </mesh>
-      {/* Ears */}
-      <mesh position={[-0.16, 0.78, 0.42]} scale={0.12}>
+
+      {/* Head + nose, grouped so they nod together. Local +Z is "front". */}
+      <group ref={head}>
+        <mesh position={[0, 0.55, 0.45]} scale={0.34} castShadow>
+          <sphereGeometry args={[1, 20, 16]} />
+          <meshStandardMaterial color="#e6c4a0" roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 0.5, 0.78]} scale={0.05}>
+          <sphereGeometry args={[1, 8, 8]} />
+          <meshStandardMaterial color="#6b4f3a" roughness={1} />
+        </mesh>
+      </group>
+
+      {/* Ears — slightly elongated so their flop is visible. */}
+      <mesh ref={earL} position={[-0.16, 0.78, 0.42]} scale={[0.1, 0.16, 0.09]}>
         <sphereGeometry args={[1, 12, 10]} />
         <meshStandardMaterial color="#c79a78" roughness={0.9} />
       </mesh>
-      <mesh position={[0.16, 0.78, 0.42]} scale={0.12}>
+      <mesh ref={earR} position={[0.16, 0.78, 0.42]} scale={[0.1, 0.16, 0.09]}>
         <sphereGeometry args={[1, 12, 10]} />
         <meshStandardMaterial color="#c79a78" roughness={0.9} />
       </mesh>
-      {/* Nose */}
-      <mesh position={[0, 0.5, 0.78]} scale={0.05}>
-        <sphereGeometry args={[1, 8, 8]} />
-        <meshStandardMaterial color="#6b4f3a" roughness={1} />
-      </mesh>
+
+      {/* Tail — a little nub at the back that sways. */}
+      <group ref={tail} position={[0, 0.34, -0.55]}>
+        <mesh position={[0, 0, -0.08]} rotation={[1.1, 0, 0]}>
+          <coneGeometry args={[0.07, 0.22, 8]} />
+          <meshStandardMaterial color="#c79a78" roughness={0.9} />
+        </mesh>
+      </group>
     </group>
   );
 }
