@@ -209,7 +209,7 @@ export function Hamster({ radius }: { radius: number }) {
   );
 }
 
-const BODY_SCALE = new Vector3(0.55, 0.45, 0.7);
+const BODY_SCALE = new Vector3(0.64, 0.56, 0.74);
 
 /**
  * Placeholder hamster built from primitives, with procedural animation.
@@ -264,39 +264,98 @@ function HamsterMesh({ anim }: { anim: MutableRefObject<{ speed: number }> }) {
 
   return (
     <group ref={root}>
-      {/* Body — sits just above the surface (feet near local origin). */}
-      <mesh ref={body} position={[0, 0.42, 0]} scale={[0.55, 0.45, 0.7]} castShadow>
-        <sphereGeometry args={[1, 20, 16]} />
-        <meshStandardMaterial color="#d9b08c" roughness={0.85} />
+      {/* Chubby round body — sits just above the surface (feet near origin). */}
+      <mesh ref={body} position={[0, 0.46, 0]} scale={[0.64, 0.56, 0.74]} castShadow>
+        <sphereGeometry args={[1, 22, 18]} />
+        <meshStandardMaterial color="#d9a86a" roughness={0.85} />
+      </mesh>
+      {/* Cream belly patch. */}
+      <mesh position={[0, 0.32, 0.34]} scale={[0.44, 0.42, 0.42]}>
+        <sphereGeometry args={[1, 18, 14]} />
+        <meshStandardMaterial color="#efe2cf" roughness={0.9} />
       </mesh>
 
-      {/* Head + nose, grouped so they nod together. Local +Z is "front". */}
+      {/* Head group (nods); holds the face, cheeks, eyes, nose, ears, whiskers.
+          Local +Z is "front". */}
       <group ref={head}>
-        <mesh position={[0, 0.55, 0.45]} scale={0.34} castShadow>
-          <sphereGeometry args={[1, 20, 16]} />
-          <meshStandardMaterial color="#e6c4a0" roughness={0.85} />
+        <mesh position={[0, 0.56, 0.42]} scale={0.4} castShadow>
+          <sphereGeometry args={[1, 22, 18]} />
+          <meshStandardMaterial color="#e2b87e" roughness={0.85} />
         </mesh>
-        <mesh position={[0, 0.5, 0.78]} scale={0.05}>
-          <sphereGeometry args={[1, 8, 8]} />
-          <meshStandardMaterial color="#6b4f3a" roughness={1} />
+        {/* The iconic cheek pouches. */}
+        <mesh position={[-0.28, 0.44, 0.5]} scale={0.22}>
+          <sphereGeometry args={[1, 16, 12]} />
+          <meshStandardMaterial color="#ecd3a6" roughness={0.88} />
+        </mesh>
+        <mesh position={[0.28, 0.44, 0.5]} scale={0.22}>
+          <sphereGeometry args={[1, 16, 12]} />
+          <meshStandardMaterial color="#ecd3a6" roughness={0.88} />
+        </mesh>
+        {/* Eyes — small, dark, shiny. */}
+        <mesh position={[-0.15, 0.64, 0.68]} scale={0.055}>
+          <sphereGeometry args={[1, 12, 10]} />
+          <meshStandardMaterial color="#16110d" roughness={0.25} />
+        </mesh>
+        <mesh position={[0.15, 0.64, 0.68]} scale={0.055}>
+          <sphereGeometry args={[1, 12, 10]} />
+          <meshStandardMaterial color="#16110d" roughness={0.25} />
+        </mesh>
+        {/* Pink nose. */}
+        <mesh position={[0, 0.55, 0.81]} scale={0.05}>
+          <sphereGeometry args={[1, 10, 8]} />
+          <meshStandardMaterial color="#bb6f73" roughness={0.7} />
+        </mesh>
+        {/* Whiskers — thin and pale. */}
+        {[
+          [-1, 0.04],
+          [-1, -0.03],
+          [1, 0.04],
+          [1, -0.03],
+        ].map(([side, dy], i) => (
+          <mesh
+            key={i}
+            position={[side * 0.1, 0.55 + dy, 0.74]}
+            rotation={[Math.PI / 2, side * 0.55, 0]}
+          >
+            <cylinderGeometry args={[0.004, 0.004, 0.34, 4]} />
+            <meshStandardMaterial color="#efe8e0" roughness={0.6} />
+          </mesh>
+        ))}
+        {/* Ears — small and round, slightly elongated so the flop reads. */}
+        <mesh ref={earL} position={[-0.17, 0.84, 0.4]} scale={[0.1, 0.13, 0.08]}>
+          <sphereGeometry args={[1, 12, 10]} />
+          <meshStandardMaterial color="#caa06a" roughness={0.9} />
+        </mesh>
+        <mesh ref={earR} position={[0.17, 0.84, 0.4]} scale={[0.1, 0.13, 0.08]}>
+          <sphereGeometry args={[1, 12, 10]} />
+          <meshStandardMaterial color="#caa06a" roughness={0.9} />
         </mesh>
       </group>
 
-      {/* Ears — slightly elongated so their flop is visible. */}
-      <mesh ref={earL} position={[-0.16, 0.78, 0.42]} scale={[0.1, 0.16, 0.09]}>
-        <sphereGeometry args={[1, 12, 10]} />
-        <meshStandardMaterial color="#c79a78" roughness={0.9} />
+      {/* Little front paws. */}
+      <mesh position={[-0.2, 0.16, 0.48]} scale={[0.1, 0.12, 0.13]}>
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color="#e8c08a" roughness={0.85} />
       </mesh>
-      <mesh ref={earR} position={[0.16, 0.78, 0.42]} scale={[0.1, 0.16, 0.09]}>
-        <sphereGeometry args={[1, 12, 10]} />
-        <meshStandardMaterial color="#c79a78" roughness={0.9} />
+      <mesh position={[0.2, 0.16, 0.48]} scale={[0.1, 0.12, 0.13]}>
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color="#e8c08a" roughness={0.85} />
+      </mesh>
+      {/* Stubby hind feet. */}
+      <mesh position={[-0.22, 0.06, 0.18]} scale={[0.12, 0.07, 0.18]}>
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color="#e8c08a" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.22, 0.06, 0.18]} scale={[0.12, 0.07, 0.18]}>
+        <sphereGeometry args={[1, 10, 8]} />
+        <meshStandardMaterial color="#e8c08a" roughness={0.85} />
       </mesh>
 
-      {/* Tail — a little nub at the back that sways. */}
-      <group ref={tail} position={[0, 0.34, -0.55]}>
-        <mesh position={[0, 0, -0.08]} rotation={[1.1, 0, 0]}>
-          <coneGeometry args={[0.07, 0.22, 8]} />
-          <meshStandardMaterial color="#c79a78" roughness={0.9} />
+      {/* Tiny tail nub that sways. */}
+      <group ref={tail} position={[0, 0.36, -0.62]}>
+        <mesh scale={[0.08, 0.08, 0.1]}>
+          <sphereGeometry args={[1, 8, 8]} />
+          <meshStandardMaterial color="#d9a86a" roughness={0.9} />
         </mesh>
       </group>
     </group>

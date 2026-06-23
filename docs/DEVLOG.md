@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Hamster looks like a hamster (code primitives)
+- Reshaped the placeholder into a recognisable hamster, still all primitives:
+  chubby round body + cream belly, big head with cheek pouches, dark eyes, pink
+  nose, pale whiskers, small round ears, little front paws + hind feet, tiny
+  tail nub. Stayed code-only to keep the low-poly diorama style cohesive (no
+  asset / CC0 model needed for now; <HamsterMesh/> is still a clean swap point).
+- Animation refs (body/head/ears/tail) unchanged, so the walk bounce/lean/ear
+  flop/tail sway + idle breathing still drive it; ears now live under the head.
+
 ## 2026-06-23 — Hamster procedural animation
 - The hamster is now alive: the controller exposes a 0..1 walk amount (`anim`),
   and the mesh drives a bounce + forward lean + waddle + ear flop + tail sway
