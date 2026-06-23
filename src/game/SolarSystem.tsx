@@ -1,9 +1,11 @@
 import { useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { useMemo, useRef } from "react";
-import { DoubleSide, Group, Mesh, PointLight, Vector3 } from "three";
+import { AmbientLight, Color, DoubleSide, Group, MathUtils, Mesh, PointLight, Vector3 } from "three";
 import { useGame } from "./state";
 import { useSystemConfig } from "./systemConfig";
+import { playerPosition } from "./playerPosition";
+import { world } from "./world";
 import { PLANETS, orbitPosition } from "./planets/registry";
 
 /**
@@ -18,6 +20,9 @@ import { PLANETS, orbitPosition } from "./planets/registry";
  */
 const STAR_RADIUS = 7;
 const SUN_INTENSITY = 3; // point light, decay 0 → uniform; tune to taste
+const Y_AXIS = new Vector3(0, 1, 0);
+const DAY_AMBIENT = new Color("#a8b6c4");
+const NIGHT_AMBIENT = new Color("#2a3a55");
 
 export function SolarSystem() {
   const index = useGame((s) => s.currentPlanet);
@@ -26,10 +31,15 @@ export function SolarSystem() {
   const sky = useRef<Group>(null!);
   const star = useRef<Mesh>(null!);
   const sunLight = useRef<PointLight>(null!);
+  const ambient = useRef<AmbientLight>(null!);
   const orbits = useRef<Group>(null!);
   const spheres = useRef<(Mesh | null)[]>([]);
   const clock = useRef(0); // celestial time (pausable / scalable)
-  const scratch = useMemo(() => ({ active: new Vector3(), other: new Vector3() }), []);
+  const weatherT = useRef(0); // throttle for auto-weather writes
+  const scratch = useMemo(
+    () => ({ active: new Vector3(), other: new Vector3(), sunDir: new Vector3(), up: new Vector3() }),
+    [],
+  );
 
   useFrame((_, rawDelta) => {
     const sys = useSystemConfig.getState();
@@ -58,12 +68,31 @@ export function SolarSystem() {
       mesh.position.copy(orbitPosition(planet, t, scratch.other).sub(active));
       mesh.rotation.y = planet.spinSpeed * t; // its own axial spin
     });
+
+    // --- Time of day: how high the sun sits in the hamster's sky ---
+    // Sun direction in world = (−active) rotated by the sky's spin about Y.
+    scratch.sunDir.copy(active).negate().applyAxisAngle(Y_AXIS, sky.current.rotation.y).normalize();
+    const upDot = scratch.up.copy(playerPosition).normalize().dot(scratch.sunDir);
+    const day = MathUtils.clamp(upDot + 0.15, 0, 1); // 0 night .. 1 day
+    world.daylight = day;
+    ambient.current.intensity = MathUtils.lerp(0.16, 0.42, day);
+    ambient.current.color.copy(NIGHT_AMBIENT).lerp(DAY_AMBIENT, day);
+
+    // Weather follows the time of day (darker = rainier), unless overridden.
+    if (sys.weatherAuto) {
+      weatherT.current += dt;
+      if (weatherT.current > 0.2) {
+        weatherT.current = 0;
+        const target = 0.12 + 0.5 * (1 - day);
+        useSystemConfig.setState({ rainIntensity: Math.round(target * 100) / 100 });
+      }
+    }
   });
 
   return (
     <group ref={sky}>
       <Stars radius={400} depth={80} count={3500} factor={5} fade speed={0} />
-      <ambientLight intensity={0.12} color="#6f86a0" />
+      <ambientLight ref={ambient} intensity={0.16} color="#2a3a55" />
 
       {/* The sun — a real point light so every body is lit from its position. */}
       <pointLight

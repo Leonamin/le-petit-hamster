@@ -1,6 +1,7 @@
 import { RefObject, useLayoutEffect } from "react";
 import { Group, Vector3 } from "three";
 import { useGame } from "../state";
+import { addCollider, removeCollider } from "../world";
 import { placeOnSurface } from "../../lib/sphere";
 
 interface Options {
@@ -15,6 +16,8 @@ interface Options {
   speaker?: string;
   lines?: string[];
   onInteract?: () => void;
+  /** If set, also block the hamster from walking through this prop. */
+  collideRadius?: number;
 }
 
 /**
@@ -39,7 +42,13 @@ export function useInteractableProp(
       lines: opts.lines,
       onInteract: opts.onInteract,
     });
-    return () => useGame.getState().unregister(opts.id);
+    if (opts.collideRadius) {
+      addCollider({ id: opts.id, position: position.clone(), radius: opts.collideRadius });
+    }
+    return () => {
+      useGame.getState().unregister(opts.id);
+      if (opts.collideRadius) removeCollider(opts.id);
+    };
     // Props are static per mount; intentionally run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -16,6 +16,7 @@ import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
 import { playerPosition, playerState } from "../playerPosition";
+import { resolveCollisions } from "../world";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
@@ -178,6 +179,10 @@ export function Hamster({ radius }: { radius: number }) {
     }
     anim.current.speed = moving ? 1 : 0;
     playerState.speed = anim.current.speed; // shared with audio (footsteps)
+
+    // Push out of solid props, then refresh the surface frame.
+    resolveCollisions(pos, radius);
+    upAt(pos, up);
 
     // Keep facing tangent, then let the camera heading trail it (decoupled, so
     // low camFollow = strafe-style fixed camera, high = turn-to-face).

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { Group, Vector3 } from "three";
+import { addCollider, removeCollider } from "../world";
 import { placeOnSurface } from "../../lib/sphere";
 import { Lighthouse } from "../objects/Lighthouse";
 import { Rain } from "../objects/Rain";
@@ -21,6 +22,8 @@ export function RainPlanet({ radius }: PlanetProps) {
 
   useLayoutEffect(() => {
     placeOnSurface(lighthouse.current, new Vector3(0.2, 1, 0.3), radius);
+    const lhPos = new Vector3(0.2, 1, 0.3).normalize().multiplyScalar(radius);
+    addCollider({ id: "rain-lighthouse", position: lhPos, radius: 1.3 });
     const dirs: [number, number, number, number][] = [
       [0.8, 0.3, -0.4, 0],
       [-0.3, 0.2, 0.9, 1.2],
@@ -31,6 +34,7 @@ export function RainPlanet({ radius }: PlanetProps) {
       const [x, y, z, spin] = dirs[i % dirs.length];
       placeOnSurface(rock, new Vector3(x, y, z), radius, spin);
     });
+    return () => removeCollider("rain-lighthouse");
   }, [radius]);
 
   return (

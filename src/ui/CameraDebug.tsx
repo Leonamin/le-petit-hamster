@@ -32,6 +32,7 @@ export function CameraDebug() {
   const showOrbits = useSystemConfig((s) => s.showOrbits);
   const orbitScale = useSystemConfig((s) => s.orbitScale);
   const rainIntensity = useSystemConfig((s) => s.rainIntensity);
+  const weatherAuto = useSystemConfig((s) => s.weatherAuto);
 
   if (!debug) {
     return <div className="debug-toggle">C — 디버그 · K 공전 · L 궤도선</div>;
@@ -77,6 +78,11 @@ export function CameraDebug() {
             <td>강수량</td>
             <td className="debug-val">{rainIntensity}</td>
             <td className="debug-keys">1 / 2</td>
+          </tr>
+          <tr>
+            <td>날씨 자동</td>
+            <td className="debug-val">{weatherAuto ? "ON" : "OFF"}</td>
+            <td className="debug-keys">3</td>
           </tr>
         </tbody>
       </table>

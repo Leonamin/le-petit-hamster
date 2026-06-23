@@ -26,6 +26,7 @@ export function ClockArtisan({ radius }: { radius: number }) {
     direction: ARTISAN_DIR,
     spin: -0.6,
     range: 2.6,
+    collideRadius: 1.4,
     prompt: "스페이스 — 말 걸기",
     speaker: "태엽쟁이 장인",
     lines: LINES,

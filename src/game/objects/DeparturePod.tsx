@@ -19,6 +19,7 @@ export function DeparturePod({ radius }: { radius: number }) {
     direction: POD_DIR,
     spin: 0.2,
     range: 2.4,
+    collideRadius: 1.0,
     prompt: "스페이스 — 다음 행성으로 떠나기",
     onInteract: () => useGame.getState().leavePlanet(),
   });

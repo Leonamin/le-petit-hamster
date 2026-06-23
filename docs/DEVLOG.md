@@ -3,6 +3,21 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Time of day + light collision
+- **Time of day:** SolarSystem computes `daylight` (0..1) from the sun's height
+  in the hamster's sky (sun dir vs hamster up, accounting for the sky spin) and
+  drives the ambient light (dim cool blue at night → soft warm by day). Stored
+  in `world.daylight`. Day/night already happened geometrically (lit vs far
+  side); this adds mood + a navigable night floor.
+- **Auto weather:** when `weatherAuto` (systemConfig, default on), the rain
+  follows the time of day (darker = rainier), throttled. Keys 1/2 still nudge
+  rain and turn auto off; key 3 toggles auto. Shown in the C panel.
+- **Light collision:** `world.ts` keeps a small collider registry; props
+  register a push-out radius (lighthouse/clock tower via the planets, NPCs +
+  pod via useInteractableProp's `collideRadius`). The controller calls
+  `resolveCollisions` after moving so the hamster can't walk through them.
+- NEXT: save/persistence; a third planet; more planet content.
+
 ## 2026-06-23 — Interaction & dialogue polish
 - Floating `InteractionMarker`: a soft emissive chevron bobs above the nearby
   interactable (points down at it), hidden during dialogue.

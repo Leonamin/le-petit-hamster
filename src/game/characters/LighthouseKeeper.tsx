@@ -26,6 +26,7 @@ export function LighthouseKeeper({ radius }: { radius: number }) {
     direction: KEEPER_DIR,
     spin: 0.5,
     range: 3,
+    collideRadius: 1.3,
     prompt: "스페이스 — 말 걸기",
     speaker: "등대지기",
     lines: LINES,

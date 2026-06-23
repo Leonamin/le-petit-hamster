@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { Group, Vector3 } from "three";
+import { addCollider, removeCollider } from "../world";
 import { placeOnSurface } from "../../lib/sphere";
 import { ClockTower } from "../objects/ClockTower";
 import { Atmosphere } from "../objects/Atmosphere";
@@ -20,6 +21,8 @@ export function ClockPlanet({ radius }: PlanetProps) {
 
   useLayoutEffect(() => {
     placeOnSurface(tower.current, new Vector3(0.15, 1, 0.25), radius);
+    const towerPos = new Vector3(0.15, 1, 0.25).normalize().multiplyScalar(radius);
+    addCollider({ id: "clock-tower", position: towerPos, radius: 1.5 });
     const dirs: [number, number, number, number][] = [
       [0.7, 0.4, -0.5, 0.3],
       [-0.4, 0.3, 0.85, 1.0],
@@ -30,6 +33,7 @@ export function ClockPlanet({ radius }: PlanetProps) {
       const [x, y, z, spin] = dirs[i % dirs.length];
       placeOnSurface(s, new Vector3(x, y, z), radius, spin);
     });
+    return () => removeCollider("clock-tower");
   }, [radius]);
 
   return (
