@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
+import {
+  Bloom,
+  BrightnessContrast,
+  EffectComposer,
+  HueSaturation,
+  TiltShift2,
+  Vignette,
+} from "@react-three/postprocessing";
 import { Hamster } from "./game/characters/Hamster";
 import { SolarSystem } from "./game/SolarSystem";
 import { PLANETS } from "./game/planets/registry";
@@ -34,12 +41,18 @@ export function App() {
 
         <EffectComposer>
           <Bloom
-            intensity={0.9}
+            intensity={0.8}
             luminanceThreshold={0.55}
             luminanceSmoothing={0.3}
             mipmapBlur
           />
-          <Vignette eskil={false} offset={0.3} darkness={0.8} />
+          {/* Tilt-shift = the "tiny world / miniature diorama" look: a sharp
+              focus band through the middle, blurring sky and foreground. */}
+          <TiltShift2 blur={0.16} taper={0.4} start={[0, 0.52]} end={[1, 0.52]} />
+          {/* Storybook colour grading: a touch more saturation + contrast. */}
+          <HueSaturation saturation={0.14} hue={0} />
+          <BrightnessContrast brightness={0} contrast={0.1} />
+          <Vignette eskil={false} offset={0.3} darkness={0.85} />
         </EffectComposer>
       </Canvas>
 

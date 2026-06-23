@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Miniature look: tilt-shift + colour grading
+- Added TiltShift2 (sharp focus band through the middle, blurs sky/foreground)
+  to read the worlds as toy-like miniature dioramas — the core art direction,
+  achieved purely in post (asset-independent, survives any model swap).
+- Subtle storybook grading: HueSaturation +0.14, BrightnessContrast +0.1
+  contrast. Tweak blur/taper/start in App.tsx to taste.
+- NEXT (asset-agnostic polish queue): rain on Rain Planet, ambient particles +
+  atmosphere glow, per-planet audio, interaction/dialogue polish.
+
 ## 2026-06-23 — Animated CC0 animals as NPCs
 - Added the Quaternius Ultimate Animated Animals pack (CC0, self-contained
   .gltf, 12 clips each: Idle/Walk/Gallop/Jump…). It has no hamster, so animals
