@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import { Group, Vector3 } from "three";
 import { placeOnSurface } from "../../lib/sphere";
 import { Lighthouse } from "../objects/Lighthouse";
+import { Rain } from "../objects/Rain";
 import { DeparturePod } from "../objects/DeparturePod";
 import { LighthouseKeeper } from "../characters/LighthouseKeeper";
 import { SleepingFriend } from "../characters/SleepingFriend";
@@ -53,6 +54,8 @@ export function RainPlanet({ radius }: PlanetProps) {
           </mesh>
         ))}
       </group>
+
+      <Rain />
 
       <LighthouseKeeper radius={radius} />
       <SleepingFriend

@@ -15,6 +15,7 @@ import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
+import { playerPosition } from "../playerPosition";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
@@ -186,6 +187,7 @@ export function Hamster({ radius }: { radius: number }) {
     // Stand the hamster on the surface, facing its heading.
     group.current.position.copy(pos);
     group.current.quaternion.copy(surfaceOrientation(up, face));
+    playerPosition.copy(pos); // share with effects (rain, …)
 
     // Keep FOV in sync with the (live-tunable) config.
     if (camera instanceof PerspectiveCamera && camera.fov !== cam.fov) {

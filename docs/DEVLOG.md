@@ -3,6 +3,17 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Rain on the Rain Planet
+- Instanced rain streaks (450) that fall toward the planet centre (local "down"
+  at the hamster) inside a volume that follows the player, recycling at the
+  bottom. Pure code, no asset. Added `playerPosition` shared module (written by
+  the controller each frame) so effects can follow the hamster.
+- Radius kept small (5) so the flat tangent spread stays near the curved
+  surface; streaks align to local up. Mounted only on the Rain Planet.
+- (Rain ambience already plays; per-planet audio is a later task.)
+- NEXT: ambient particles + atmosphere glow; per-planet audio; interaction
+  polish.
+
 ## 2026-06-23 — Miniature look: tilt-shift + colour grading
 - Added TiltShift2 (sharp focus band through the middle, blurs sky/foreground)
   to read the worlds as toy-like miniature dioramas — the core art direction,
