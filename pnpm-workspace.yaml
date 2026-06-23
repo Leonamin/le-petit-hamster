@@ -1,0 +1,3 @@
+# esbuild needs its postinstall to fetch its platform binary, which Vite uses.
+allowBuilds:
+  esbuild: true
