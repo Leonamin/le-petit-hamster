@@ -3,6 +3,8 @@ import { Group, Vector3 } from "three";
 import { placeOnSurface } from "../../lib/sphere";
 import { Lighthouse } from "../objects/Lighthouse";
 import { Rain } from "../objects/Rain";
+import { Atmosphere } from "../objects/Atmosphere";
+import { Motes } from "../objects/Motes";
 import { DeparturePod } from "../objects/DeparturePod";
 import { LighthouseKeeper } from "../characters/LighthouseKeeper";
 import { SleepingFriend } from "../characters/SleepingFriend";
@@ -55,7 +57,10 @@ export function RainPlanet({ radius }: PlanetProps) {
         ))}
       </group>
 
+      <Atmosphere radius={radius} color="#5a8fb0" />
       <Rain />
+      {/* Sparse cool motes — like fine spray drifting in the rain. */}
+      <Motes count={28} color="#bcd6ec" area={5} height={4} size={0.04} drift={0.4} />
 
       <LighthouseKeeper radius={radius} />
       <SleepingFriend

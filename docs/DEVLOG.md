@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Ambient particles + atmosphere glow
+- `Atmosphere`: a thin fresnel rim-glow shell (~1.06×radius, additive) that
+  haloes each planet's limb without washing the ground — reads as a little
+  world wrapped in atmosphere. Rain = cool blue, Clock = warm amber.
+- `Motes`: instanced glowing particles drifting + twinkling in a volume around
+  the player (bright + toneMapped off so Bloom glows them). Rain = sparse cool
+  spray (28), Clock = warm fireflies (70). Both follow `playerPosition`.
+- NEXT: per-planet audio; interaction/dialogue polish; time-of-day system.
+
 ## 2026-06-23 — Adjustable rain intensity
 - Rain density is now a live `rainIntensity` (0..1) in systemConfig; Rain caps
   `instancedMesh.count` to `COUNT(600) * intensity`, so it ranges from light

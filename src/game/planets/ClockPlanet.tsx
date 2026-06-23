@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef } from "react";
 import { Group, Vector3 } from "three";
 import { placeOnSurface } from "../../lib/sphere";
 import { ClockTower } from "../objects/ClockTower";
+import { Atmosphere } from "../objects/Atmosphere";
+import { Motes } from "../objects/Motes";
 import { DeparturePod } from "../objects/DeparturePod";
 import { ClockArtisan } from "../characters/ClockArtisan";
 import { SleepingFriend } from "../characters/SleepingFriend";
@@ -53,6 +55,10 @@ export function ClockPlanet({ radius }: PlanetProps) {
           </mesh>
         ))}
       </group>
+
+      <Atmosphere radius={radius} color="#caa24a" />
+      {/* Warm fireflies drifting in the slow amber dusk. */}
+      <Motes count={70} color="#ffcf7a" area={5} height={3.5} size={0.05} drift={0.7} />
 
       <ClockArtisan radius={radius} />
       <SleepingFriend
