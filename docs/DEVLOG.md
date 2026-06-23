@@ -3,6 +3,20 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Self-rotation, point-light sun, orbit toggles
+- **Point-light sun** (decay 0) replaces the directional light, so every body is
+  lit from the star's actual position. Still casts the planet's shadows.
+- **Self-rotation (자전):** all celestial objects live in one `sky` group; the
+  active planet's spin is shown by counter-rotating that group (the surface
+  dweller can't tell the difference). Distant planets also spin their own mesh.
+  `spinSpeed` added per planet.
+- **Runtime toggles** (`systemConfig` + `useSystemControls`, global keys):
+  K = pause/resume celestial motion, L = orbit rings on/off, N/M = speed scale.
+  Shown in the C panel; persisted to localStorage. Celestial motion uses a
+  pausable/scalable time accumulator instead of raw clock.
+- Stars moved into the sky group so the night sky turns with self-rotation.
+- NEXT: tune sun intensity/spin/orbit feel; maybe axial tilt, a third planet.
+
 ## 2026-06-23 — Star system: sun, orbits, per-planet size
 - The planets now share **one star system**. Trick: the active planet is always
   rendered at the origin (controller stays simple), and `SolarSystem` draws the

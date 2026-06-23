@@ -30,6 +30,9 @@ export interface PlanetDef {
   orbitSpeed: number;
   /** Starting angle of its orbit. */
   orbitPhase: number;
+  /** Axial self-rotation speed (rad/s). For the active planet this is shown by
+   *  counter-rotating the sky; for distant planets the mesh itself spins. */
+  spinSpeed: number;
   Component: ComponentType<PlanetProps>;
 }
 
@@ -43,6 +46,7 @@ export const PLANETS: PlanetDef[] = [
     orbitRadius: 46,
     orbitSpeed: 0.05,
     orbitPhase: 0,
+    spinSpeed: 0.06,
     Component: RainPlanet,
   },
   {
@@ -54,6 +58,7 @@ export const PLANETS: PlanetDef[] = [
     orbitRadius: 28,
     orbitSpeed: 0.085,
     orbitPhase: 2.2,
+    spinSpeed: 0.1,
     Component: ClockPlanet,
   },
 ];

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Stars } from "@react-three/drei";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Hamster } from "./game/characters/Hamster";
 import { SolarSystem } from "./game/SolarSystem";
@@ -28,7 +27,6 @@ export function App() {
     <>
       <Canvas shadows camera={{ fov: 60, near: 0.1, far: 2000 }}>
         <color attach="background" args={["#05060a"]} />
-        <Stars radius={400} depth={80} count={3500} factor={5} fade speed={0.3} />
 
         <SolarSystem />
         <ActivePlanet radius={planet.radius} />
