@@ -1,3 +1,6 @@
 # esbuild needs its postinstall to fetch its platform binary, which Vite uses.
 allowBuilds:
   esbuild: true
+  # wrangler's deps — not needed for the vite build; flip to true if a deploy needs them.
+  sharp: false
+  workerd: false

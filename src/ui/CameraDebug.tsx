@@ -31,6 +31,7 @@ export function CameraDebug() {
   const orbitOn = useSystemConfig((s) => s.orbitOn);
   const showOrbits = useSystemConfig((s) => s.showOrbits);
   const orbitScale = useSystemConfig((s) => s.orbitScale);
+  const rainIntensity = useSystemConfig((s) => s.rainIntensity);
 
   if (!debug) {
     return <div className="debug-toggle">C — 디버그 · K 공전 · L 궤도선</div>;
@@ -71,6 +72,11 @@ export function CameraDebug() {
             <td>공전 배속</td>
             <td className="debug-val">{orbitScale}×</td>
             <td className="debug-keys">N / M</td>
+          </tr>
+          <tr>
+            <td>강수량</td>
+            <td className="debug-val">{rainIntensity}</td>
+            <td className="debug-keys">1 / 2</td>
           </tr>
         </tbody>
       </table>

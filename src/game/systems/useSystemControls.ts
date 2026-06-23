@@ -6,6 +6,7 @@ import { useSystemConfig } from "../systemConfig";
  *   K — pause/resume celestial motion (공전)
  *   L — show/hide orbit rings (궤도선)
  *   N / M — slow down / speed up (공전 배속)
+ *   1 / 2 — less / more rain (강수량)
  */
 export function useSystemControls(): void {
   useEffect(() => {
@@ -23,6 +24,12 @@ export function useSystemControls(): void {
           break;
         case "KeyM":
           s.nudgeScale(0.25);
+          break;
+        case "Digit1":
+          s.nudgeRain(-0.1);
+          break;
+        case "Digit2":
+          s.nudgeRain(0.1);
           break;
       }
     };

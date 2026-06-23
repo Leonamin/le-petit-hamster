@@ -1,0 +1,4 @@
+# Cloudflare Pages deployment configuration for le-petit-hamster
+name = "le-petit-hamster"
+compatibility_date = "2026-06-23"
+pages_build_output_dir = "./dist"

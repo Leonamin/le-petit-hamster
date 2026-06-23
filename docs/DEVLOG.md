@@ -3,6 +3,15 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Adjustable rain intensity
+- Rain density is now a live `rainIntensity` (0..1) in systemConfig; Rain caps
+  `instancedMesh.count` to `COUNT(600) * intensity`, so it ranges from light
+  drizzle to downpour. Default lowered to 0.35 (was effectively full).
+- Keys 1 / 2 adjust it (global), shown in the C panel as 강수량. Hook is in
+  place for time-of-day to drive it later.
+- (Build note: filled the wrangler-added sharp/workerd allowBuilds placeholders
+  in pnpm-workspace.yaml with false so `pnpm build` passes.)
+
 ## 2026-06-23 — Rain on the Rain Planet
 - Instanced rain streaks (450) that fall toward the planet centre (local "down"
   at the hamster) inside a volume that follows the player, recycling at the
