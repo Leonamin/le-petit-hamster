@@ -1,16 +1,12 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import { Group, Vector3 } from "three";
-import { PLANET_RADIUS } from "../config";
-import { useGame } from "../state";
-import { placeOnSurface } from "../../lib/sphere";
+import { useInteractableProp } from "../systems/useInteractableProp";
 
 /**
- * The Mouse Lighthouse Keeper (PLANETS.md → Rain Planet, theme: Waiting).
- * Stands beside the lighthouse. Walk close and press Space to hear them.
- * Built entirely from primitives — no asset needed.
+ * The Mouse Lighthouse Keeper (Rain Planet, theme: Waiting). Stands beside the
+ * lighthouse. Walk close and press Space to hear them. Built from primitives.
  */
 
-// Surface direction the keeper stands at (near the lighthouse at (0.2,1,0.3)).
 const KEEPER_DIR = new Vector3(0.33, 1, 0.5);
 
 const LINES = [
@@ -23,31 +19,18 @@ const LINES = [
 export function LighthouseKeeper() {
   const ref = useRef<Group>(null!);
 
-  useLayoutEffect(() => {
-    placeOnSurface(ref.current, KEEPER_DIR, PLANET_RADIUS, 0.5);
-    const position = KEEPER_DIR.clone().normalize().multiplyScalar(PLANET_RADIUS);
-    useGame.getState().register({
-      id: "lighthouse-keeper",
-      position,
-      radius: 2.6,
-      prompt: "스페이스 — 말 걸기",
-      speaker: "등대지기 쥐",
-      lines: LINES,
-    });
-    return () => useGame.getState().unregister("lighthouse-keeper");
-  }, []);
+  useInteractableProp(ref, {
+    id: "rain-keeper",
+    direction: KEEPER_DIR,
+    spin: 0.5,
+    radius: 2.6,
+    prompt: "스페이스 — 말 걸기",
+    speaker: "등대지기 쥐",
+    lines: LINES,
+  });
 
   return (
     <group ref={ref}>
-      <KeeperMesh />
-    </group>
-  );
-}
-
-/** Placeholder grey mouse. Local +Z is "front". */
-function KeeperMesh() {
-  return (
-    <group>
       {/* Body */}
       <mesh position={[0, 0.34, 0]} scale={[0.4, 0.42, 0.45]} castShadow>
         <sphereGeometry args={[1, 18, 14]} />

@@ -18,7 +18,9 @@ friends. Cozy exploration, no combat/leveling/crafting. The design docs
 - `src/lib/sphere.ts` — the math for living on a sphere (up vectors, surface
   orientation, placing props). **This is the heart of the game.**
 - `src/game/systems/` — per-frame behaviour (input, controllers).
-- `src/game/planets/` — one component per planet = one hand-authored diorama.
+- `src/game/planets/` — one self-contained component per planet (its own mood +
+  scenery + NPC + friend), all listed in `registry.ts`. App mounts the active
+  one; travel advances `currentPlanet` and wraps around.
 - `src/game/objects/` — reusable props built from primitives.
 - `src/game/characters/` — the hamster + the spherical-walk controller.
 - `src/ui/` — React overlays (dialogue, transitions). Keep UI minimal.

@@ -18,10 +18,12 @@ Success is measured by *feeling* (warm, quiet, curious), not feature count.
 - [x] Ambient audio: procedural rain (Web Audio, no asset)
 - [x] "Leave planet" fade/transition (loops back for now; real travel = M2)
 
-## Milestone 2 — A second planet + travel
-- [ ] Extract a Planet abstraction from RainPlanet
-- [ ] Minimal planet-to-planet travel
-- [ ] A second themed planet (Time / Memory / Friendship)
+## Milestone 2 — A second planet + travel ✅
+- [x] Extract a Planet abstraction (self-contained planet components + registry)
+- [x] Minimal planet-to-planet travel (pod → next planet, wraps around)
+- [x] A second themed planet: Clock Planet (Time)
+- [x] Arrival title (storybook chapter heading)
+- Follow-ups: per-planet radius; a third planet; smoother arrival beat
 
 ## Later / Backlog
 - Save the planets you've visited

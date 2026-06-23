@@ -4,6 +4,7 @@ import { useGame } from "../game/state";
 import { CameraDebug } from "./CameraDebug";
 import { Dialogue } from "./Dialogue";
 import { Fade } from "./Fade";
+import { PlanetTitle } from "./PlanetTitle";
 
 /**
  * 2D overlay layer (lives outside the Canvas). Owns global interaction input
@@ -18,6 +19,7 @@ export function Hud() {
 
   return (
     <>
+      <PlanetTitle />
       <Dialogue />
       <Fade />
       <CameraDebug />

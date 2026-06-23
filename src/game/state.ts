@@ -39,6 +39,10 @@ interface GameState {
   departing: boolean;
   /** Bumped on each departure/arrival; controllers reset when it changes. */
   planetEpoch: number;
+  /** Index of the active planet in the registry. */
+  currentPlanet: number;
+  /** Number of planets in the registry (set once by App). */
+  planetCount: number;
 
   register: (item: Interactable) => void;
   unregister: (id: string) => void;
@@ -57,6 +61,8 @@ export const useGame = create<GameState>((set, get) => ({
   awakenedFriends: [],
   departing: false,
   planetEpoch: 0,
+  currentPlanet: 0,
+  planetCount: 1,
 
   register: (item) =>
     set((s) => ({ interactables: { ...s.interactables, [item.id]: item } })),
@@ -111,10 +117,13 @@ export const useGame = create<GameState>((set, get) => ({
 
   leavePlanet: () => {
     if (get().departing) return;
-    // Fade out (CSS ~1.2s) → reset the world while black → fade back in.
+    // Fade out (CSS ~1.2s) → swap to the next planet while black → fade in.
     set({ departing: true, dialogue: null, nearbyId: null });
     window.setTimeout(() => {
-      set((s) => ({ planetEpoch: s.planetEpoch + 1 }));
+      set((s) => ({
+        planetEpoch: s.planetEpoch + 1,
+        currentPlanet: (s.currentPlanet + 1) % Math.max(1, s.planetCount),
+      }));
       window.setTimeout(() => set({ departing: false }), 450);
     }, 1300);
   },

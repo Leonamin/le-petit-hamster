@@ -3,6 +3,21 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Milestone 2: planet abstraction + travel
+- **Planets are now self-contained components** (mood + terrain + scenery + NPC
+  + friend), listed in `planets/registry.ts`. App mounts only the active one;
+  the hamster + departure pod are persistent across swaps.
+- **Travel:** the pod's `leavePlanet` now advances `currentPlanet` (wraps via
+  `planetCount`, set by App) at the mid-fade black moment, so scenery/mood swap
+  unseen. Per-planet interactables auto-register/unregister on mount/unmount.
+- **Second planet: Clock Planet (Time)** — warm amber dusk, a clock tower with
+  slowly turning hands, the windup artisan NPC, and its own sleeping friend.
+- DRYed prop placement+registration into `useInteractableProp`; generalised
+  `SleepingFriend` to take id/direction/lines/colours.
+- Added `PlanetTitle` overlay — name + theme fade in on arrival (storybook).
+- NEXT (M3 ideas): per-planet radius, a third planet, audio per planet, a
+  smoother arrival beat, save visited planets.
+
 ## 2026-06-23 — Camera-relative 8-direction movement
 - Switched from "turn toward movement" to **camera-relative strafe movement**:
   input vectors sum, so W+S / A+D cancel to a stop and W+D etc. give diagonals.

@@ -1,37 +1,32 @@
+import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
-import { RainPlanet } from "./game/planets/RainPlanet";
 import { Hamster } from "./game/characters/Hamster";
-import { LighthouseKeeper } from "./game/characters/LighthouseKeeper";
-import { SleepingFriend } from "./game/characters/SleepingFriend";
 import { DeparturePod } from "./game/objects/DeparturePod";
+import { PLANETS } from "./game/planets/registry";
+import { useGame } from "./game/state";
 import { Hud } from "./ui/Hud";
 
 /**
- * Root of the experience. The mood (Melancholic / Warm / Quiet — PLANETS.md)
- * comes almost entirely from lighting + fog + post-processing rather than from
- * detailed models. That is the whole strategy for "no assets".
+ * Root of the experience. Each planet is self-contained (its own mood + scenery
+ * + characters); App just mounts the active one plus the persistent traveller
+ * (the hamster + its pod) and the global post-processing and UI.
  */
 export function App() {
+  const currentPlanet = useGame((s) => s.currentPlanet);
+  const ActivePlanet = PLANETS[currentPlanet].Component;
+
+  // Tell the store how many planets exist, so travel can wrap around.
+  useEffect(() => {
+    useGame.setState({ planetCount: PLANETS.length });
+  }, []);
+
   return (
     <>
-      <Canvas shadows camera={{ fov: 55, near: 0.1, far: 100 }}>
-        {/* Twilight rain sky + fog to make the small world feel vast and soft. */}
-        <color attach="background" args={["#1a2230"]} />
-        <fog attach="fog" args={["#1a2230", 12, 34]} />
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 100 }}>
+        <ActivePlanet />
 
-        <hemisphereLight args={["#9fb4c7", "#2a3340", 0.6]} />
-        <directionalLight
-          position={[6, 10, 4]}
-          intensity={1.1}
-          color="#dfe7f0"
-          castShadow
-          shadow-mapSize={[1024, 1024]}
-        />
-
-        <RainPlanet />
-        <LighthouseKeeper />
-        <SleepingFriend />
+        {/* Persistent traveller — survives planet swaps. */}
         <DeparturePod />
         <Hamster />
 

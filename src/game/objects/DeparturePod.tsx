@@ -1,8 +1,7 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import { Group, Vector3 } from "three";
-import { PLANET_RADIUS } from "../config";
 import { useGame } from "../state";
-import { placeOnSurface } from "../../lib/sphere";
+import { useInteractableProp } from "../systems/useInteractableProp";
 
 /**
  * The little pod the hamster travels in. Approaching it and interacting
@@ -16,18 +15,14 @@ const POD_DIR = new Vector3(-0.3, 0.85, 0.6);
 export function DeparturePod() {
   const ref = useRef<Group>(null!);
 
-  useLayoutEffect(() => {
-    placeOnSurface(ref.current, POD_DIR, PLANET_RADIUS, 0.2);
-    const position = POD_DIR.clone().normalize().multiplyScalar(PLANET_RADIUS);
-    useGame.getState().register({
-      id: "departure-pod",
-      position,
-      radius: 2.4,
-      prompt: "스페이스 — 다음 행성으로 떠나기",
-      onInteract: () => useGame.getState().leavePlanet(),
-    });
-    return () => useGame.getState().unregister("departure-pod");
-  }, []);
+  useInteractableProp(ref, {
+    id: "departure-pod",
+    direction: POD_DIR,
+    spin: 0.2,
+    radius: 2.4,
+    prompt: "스페이스 — 다음 행성으로 떠나기",
+    onInteract: () => useGame.getState().leavePlanet(),
+  });
 
   return (
     <group ref={ref}>

@@ -94,6 +94,49 @@ canvas {
   opacity: 1;
 }
 
+/* --- Planet arrival title --- */
+.planet-title {
+  position: fixed;
+  top: 22%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #eef2f7;
+  pointer-events: none;
+  user-select: none;
+  animation: planet-title 5s ease forwards;
+}
+
+.planet-name {
+  font-size: 34px;
+  letter-spacing: 0.12em;
+  font-weight: 300;
+}
+
+.planet-theme {
+  margin-top: 10px;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 217, 160, 0.85);
+}
+
+@keyframes planet-title {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* --- Camera debug overlay (dev tool) --- */
 .debug-toggle {
   position: fixed;
