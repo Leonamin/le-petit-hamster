@@ -6,6 +6,7 @@ import { useGame } from "./state";
 import { useSystemConfig } from "./systemConfig";
 import { playerPosition } from "./playerPosition";
 import { world } from "./world";
+import { Atmosphere } from "./objects/Atmosphere";
 import { PLANETS, orbitPosition } from "./planets/registry";
 
 /**
@@ -33,7 +34,7 @@ export function SolarSystem() {
   const sunLight = useRef<PointLight>(null!);
   const ambient = useRef<AmbientLight>(null!);
   const orbits = useRef<Group>(null!);
-  const spheres = useRef<(Mesh | null)[]>([]);
+  const spheres = useRef<(Group | null)[]>([]);
   const clock = useRef(0); // celestial time (pausable / scalable)
   const weatherT = useRef(0); // throttle for auto-weather writes
   const scratch = useMemo(
@@ -122,17 +123,21 @@ export function SolarSystem() {
         </group>
       )}
 
-      {/* The other planets, seen across the sky. */}
+      {/* The other planets, seen across the sky — each wrapped in atmosphere
+          (the rim glow reads correctly when viewed from a distance). */}
       {PLANETS.map((planet, i) => (
-        <mesh
+        <group
           key={planet.id}
           ref={(el) => {
             spheres.current[i] = el;
           }}
         >
-          <sphereGeometry args={[planet.radius, 32, 32]} />
-          <meshStandardMaterial color={planet.color} roughness={1} />
-        </mesh>
+          <mesh>
+            <sphereGeometry args={[planet.radius, 32, 32]} />
+            <meshStandardMaterial color={planet.color} roughness={1} />
+          </mesh>
+          <Atmosphere radius={planet.radius} color={planet.atmosphere} intensity={1.1} />
+        </group>
       ))}
     </group>
   );

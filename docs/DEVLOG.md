@@ -3,6 +3,13 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Move atmosphere to distant planets (fix "water" look)
+- The rim-glow Atmosphere shell hugged the active planet (1.06×radius) and, from
+  the surface camera, read as a translucent "flooded" layer on the ground — the
+  technique only works viewed from afar. Removed it from the planet you stand on
+  and wrapped each DISTANT planet in the sky with it instead (added a per-planet
+  `atmosphere` colour), where the halo reads correctly.
+
 ## 2026-06-23 — Time of day + light collision
 - **Time of day:** SolarSystem computes `daylight` (0..1) from the sun's height
   in the hamster's sky (sun dir vs hamster up, accounting for the sky spin) and

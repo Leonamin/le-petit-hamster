@@ -24,6 +24,8 @@ export interface PlanetDef {
   radius: number;
   /** Colour of this planet seen from afar (in another planet's sky). */
   color: string;
+  /** Atmosphere rim-glow colour seen from afar. */
+  atmosphere: string;
   /** Distance from the star. */
   orbitRadius: number;
   /** Angular speed of its orbit (rad/s) — keep small and calm. */
@@ -43,6 +45,7 @@ export const PLANETS: PlanetDef[] = [
     theme: "기다림",
     radius: 8,
     color: "#3f5a52",
+    atmosphere: "#7fb6d8",
     orbitRadius: 46,
     orbitSpeed: 0.05,
     orbitPhase: 0,
@@ -55,6 +58,7 @@ export const PLANETS: PlanetDef[] = [
     theme: "시간",
     radius: 5.5,
     color: "#6a5d49",
+    atmosphere: "#e6b566",
     orbitRadius: 28,
     orbitSpeed: 0.085,
     orbitPhase: 2.2,
