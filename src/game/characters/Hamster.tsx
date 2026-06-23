@@ -25,10 +25,10 @@ const ORIGIN = new Vector3(0, 0, 0);
  * MODEL_SCALE / MODEL_ROT / MODEL_OFFSET so it stands ~1 unit tall, sits with
  * its feet near y=0, and faces +Z (the walk direction). No file → primitives.
  */
-const MODEL_URL: string | null = null;
-const MODEL_SCALE = 1;
-const MODEL_ROT: [number, number, number] = [0, 0, 0]; // e.g. [0, Math.PI, 0] to face +Z
-const MODEL_OFFSET: [number, number, number] = [0, 0, 0];
+const MODEL_URL: string | null = "/models/hamster.glb";
+const MODEL_SCALE = 0.026; // model is ~38 units tall → ~1 unit
+const MODEL_ROT: [number, number, number] = [0, 0, 0]; // [0, Math.PI, 0] if it faces backward
+const MODEL_OFFSET: [number, number, number] = [0, 0.49, 0]; // lift centred origin so feet touch the ground
 
 /**
  * The hamster: a code-built placeholder body + the spherical-walk controller
