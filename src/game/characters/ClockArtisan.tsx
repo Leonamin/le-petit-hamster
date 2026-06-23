@@ -16,14 +16,14 @@ const LINES = [
   "여기서 잠든 친구는 말이야… 시간을 가장 잘 아는 아이란다. 깨우든 그냥 두든, 그건 당신 마음이고.",
 ];
 
-export function ClockArtisan() {
+export function ClockArtisan({ radius }: { radius: number }) {
   const ref = useRef<Group>(null!);
 
-  useInteractableProp(ref, {
+  useInteractableProp(ref, radius, {
     id: "clock-artisan",
     direction: ARTISAN_DIR,
     spin: -0.6,
-    radius: 2.6,
+    range: 2.6,
     prompt: "스페이스 — 말 걸기",
     speaker: "태엽쟁이 장인",
     lines: LINES,

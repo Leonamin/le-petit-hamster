@@ -1,6 +1,5 @@
 import { RefObject, useLayoutEffect } from "react";
 import { Group, Vector3 } from "three";
-import { PLANET_RADIUS } from "../config";
 import { useGame } from "../state";
 import { placeOnSurface } from "../../lib/sphere";
 
@@ -10,8 +9,8 @@ interface Options {
   direction: Vector3;
   /** Spin about the surface normal when placed. */
   spin?: number;
-  /** Interaction radius in world units. */
-  radius: number;
+  /** Interaction range in world units. */
+  range: number;
   prompt: string;
   speaker?: string;
   lines?: string[];
@@ -19,18 +18,22 @@ interface Options {
 }
 
 /**
- * Places a group on the planet surface and registers it as an interactable for
- * its lifetime (auto-unregistered on unmount — which is how planets clean up
- * their NPCs when you travel away). DRYs the boilerplate every prop repeated.
+ * Places a group on the planet surface (at the given planet radius) and
+ * registers it as an interactable for its lifetime — auto-unregistered on
+ * unmount, which is how planets clean up their NPCs when you travel away.
  */
-export function useInteractableProp(ref: RefObject<Group>, opts: Options): void {
+export function useInteractableProp(
+  ref: RefObject<Group>,
+  planetRadius: number,
+  opts: Options,
+): void {
   useLayoutEffect(() => {
-    placeOnSurface(ref.current!, opts.direction, PLANET_RADIUS, opts.spin ?? 0);
-    const position = opts.direction.clone().normalize().multiplyScalar(PLANET_RADIUS);
+    placeOnSurface(ref.current!, opts.direction, planetRadius, opts.spin ?? 0);
+    const position = opts.direction.clone().normalize().multiplyScalar(planetRadius);
     useGame.getState().register({
       id: opts.id,
       position,
-      radius: opts.radius,
+      radius: opts.range,
       prompt: opts.prompt,
       speaker: opts.speaker,
       lines: opts.lines,

@@ -1,20 +1,23 @@
 import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
+import { Stars } from "@react-three/drei";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Hamster } from "./game/characters/Hamster";
-import { DeparturePod } from "./game/objects/DeparturePod";
+import { SolarSystem } from "./game/SolarSystem";
 import { PLANETS } from "./game/planets/registry";
 import { useGame } from "./game/state";
 import { Hud } from "./ui/Hud";
 
 /**
- * Root of the experience. Each planet is self-contained (its own mood + scenery
- * + characters); App just mounts the active one plus the persistent traveller
- * (the hamster + its pod) and the global post-processing and UI.
+ * Root of the experience. A single star system lives in world space; the active
+ * planet is rendered at the origin (simple controller) with the star and the
+ * other planets drawn around it. App mounts the active planet's diorama plus
+ * the persistent traveller (the hamster) and the global post-processing and UI.
  */
 export function App() {
   const currentPlanet = useGame((s) => s.currentPlanet);
-  const ActivePlanet = PLANETS[currentPlanet].Component;
+  const planet = PLANETS[currentPlanet];
+  const ActivePlanet = planet.Component;
 
   // Tell the store how many planets exist, so travel can wrap around.
   useEffect(() => {
@@ -23,21 +26,22 @@ export function App() {
 
   return (
     <>
-      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 100 }}>
-        <ActivePlanet />
+      <Canvas shadows camera={{ fov: 60, near: 0.1, far: 2000 }}>
+        <color attach="background" args={["#05060a"]} />
+        <Stars radius={400} depth={80} count={3500} factor={5} fade speed={0.3} />
 
-        {/* Persistent traveller — survives planet swaps. */}
-        <DeparturePod />
-        <Hamster />
+        <SolarSystem />
+        <ActivePlanet radius={planet.radius} />
+        <Hamster radius={planet.radius} />
 
         <EffectComposer>
           <Bloom
-            intensity={0.7}
-            luminanceThreshold={0.6}
+            intensity={0.9}
+            luminanceThreshold={0.55}
             luminanceSmoothing={0.3}
             mipmapBlur
           />
-          <Vignette eskil={false} offset={0.25} darkness={0.85} />
+          <Vignette eskil={false} offset={0.3} darkness={0.8} />
         </EffectComposer>
       </Canvas>
 

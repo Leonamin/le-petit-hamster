@@ -18,9 +18,12 @@ friends. Cozy exploration, no combat/leveling/crafting. The design docs
 - `src/lib/sphere.ts` — the math for living on a sphere (up vectors, surface
   orientation, placing props). **This is the heart of the game.**
 - `src/game/systems/` — per-frame behaviour (input, controllers).
-- `src/game/planets/` — one self-contained component per planet (its own mood +
-  scenery + NPC + friend), all listed in `registry.ts`. App mounts the active
-  one; travel advances `currentPlanet` and wraps around.
+- `src/game/planets/` — one self-contained component per planet (scenery + NPC +
+  friend + pod), all listed in `registry.ts` with radius/colour/orbit. App
+  mounts the active one; travel advances `currentPlanet` and wraps around.
+- `src/game/SolarSystem.tsx` — the star + other planets, drawn around the active
+  planet (which is always at the origin). Provides the sunlight. See PITFALLS
+  for the origin-offset trick and the directional-light target gotcha.
 - `src/game/objects/` — reusable props built from primitives.
 - `src/game/characters/` — the hamster + the spherical-walk controller.
 - `src/ui/` — React overlays (dialogue, transitions). Keep UI minimal.

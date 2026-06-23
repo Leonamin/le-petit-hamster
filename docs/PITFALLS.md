@@ -26,6 +26,17 @@ for it twice. Add to this freely — it is the most valuable doc over time.
   Use module-level or `useMemo` scratch vectors.
 - Keep mutable game state in **refs**, not `useState` — state changes re-render.
 
+## Star system / lighting
+- **The active planet is rendered at the origin**, never at its true orbital
+  position — everything else (star, other planets) is offset by −(active orbit
+  position). Keeps the walk controller a simple "centre at origin" sphere.
+- **A directional light's `target` must be in the scene graph (or have
+  `updateMatrixWorld()` called)** for its direction to update. We move the sun
+  light every frame and call `target.updateMatrixWorld()` so the rays re-aim at
+  the origin. Forgetting this leaves the light pointing the wrong way.
+- Make the sun `meshBasicMaterial` with `toneMapped={false}` so it stays bright
+  enough for Bloom to pick it up as a glowing star.
+
 ## Audio
 - **Browsers block audio until a user gesture.** Start the AudioContext from
   the first pointer/key event, not on mount (see `audio/useAmbience.ts`).

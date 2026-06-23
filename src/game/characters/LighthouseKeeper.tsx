@@ -16,14 +16,14 @@ const LINES = [
   "저 너머에 잠든 친구가 하나 있어. 굳이 깨우지 않아도 괜찮아. 그저 곁에 잠시 있어 주는 것만으로도, 충분할 때가 있으니까.",
 ];
 
-export function LighthouseKeeper() {
+export function LighthouseKeeper({ radius }: { radius: number }) {
   const ref = useRef<Group>(null!);
 
-  useInteractableProp(ref, {
+  useInteractableProp(ref, radius, {
     id: "rain-keeper",
     direction: KEEPER_DIR,
     spin: 0.5,
-    radius: 2.6,
+    range: 2.6,
     prompt: "스페이스 — 말 걸기",
     speaker: "등대지기 쥐",
     lines: LINES,

@@ -3,6 +3,24 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-23 — Star system: sun, orbits, per-planet size
+- The planets now share **one star system**. Trick: the active planet is always
+  rendered at the origin (controller stays simple), and `SolarSystem` draws the
+  star + other planets offset by −(active planet's orbital position). As the
+  active planet orbits, the sun and other worlds sweep across the sky and the
+  day/night terminator drifts.
+- **Per-planet radius** threaded through: `PlanetDef.radius` → planet component
+  prop → its scenery/NPC placement (`useInteractableProp` takes a planetRadius)
+  → the Hamster controller (radius prop via a ref). Rain r=8, Clock r=5.5.
+- Sun = full-bright (`toneMapped={false}`) sphere + bloom; a directional light
+  positioned at the star, aimed at the origin, casts the planet's shadows.
+- Replaced per-planet background/fog with a space backdrop + drei `<Stars>`;
+  each planet keeps only a subtle hemisphere tint. Lighting is now the star.
+- DeparturePod moved into each planet (placed at that planet's radius).
+- PITFALLS: directional-light target must be updateMatrixWorld()'d each frame.
+- NEXT: tune orbit speeds / sizes / sun feel; maybe planet self-spin, a third
+  world, per-planet ambience.
+
 ## 2026-06-23 — Milestone 2: planet abstraction + travel
 - **Planets are now self-contained components** (mood + terrain + scenery + NPC
   + friend), listed in `planets/registry.ts`. App mounts only the active one;

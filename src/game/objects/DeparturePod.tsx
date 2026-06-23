@@ -4,22 +4,21 @@ import { useGame } from "../state";
 import { useInteractableProp } from "../systems/useInteractableProp";
 
 /**
- * The little pod the hamster travels in. Approaching it and interacting
- * leaves the planet (Core Loop → "Leave Planet"). For now there is only one
- * planet, so leaving fades out and gently returns you to the arrival point;
- * Milestone 2 swaps in a real next planet. Glows so it is easy to find.
+ * The little pod the hamster travels in. Approaching it and interacting leaves
+ * the planet for the next one (Core Loop → "Leave Planet"). Each planet renders
+ * its own, placed at that planet's radius. Glows so it is easy to find.
  */
 
 const POD_DIR = new Vector3(-0.3, 0.85, 0.6);
 
-export function DeparturePod() {
+export function DeparturePod({ radius }: { radius: number }) {
   const ref = useRef<Group>(null!);
 
-  useInteractableProp(ref, {
+  useInteractableProp(ref, radius, {
     id: "departure-pod",
     direction: POD_DIR,
     spin: 0.2,
-    radius: 2.4,
+    range: 2.4,
     prompt: "스페이스 — 다음 행성으로 떠나기",
     onInteract: () => useGame.getState().leavePlanet(),
   });

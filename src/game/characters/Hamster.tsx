@@ -1,7 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Group, PerspectiveCamera, Vector3 } from "three";
-import { CAM_SMOOTH, PLANET_RADIUS, WALK_SPEED } from "../config";
+import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
@@ -13,13 +13,17 @@ import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
  * proves the whole game is buildable. When a CC0 rigged model is ready, swap
  * <HamsterMesh/> for a <primitive object={gltf.scene}/> and keep the controller.
  */
-export function Hamster() {
+export function Hamster({ radius }: { radius: number }) {
   const group = useRef<Group>(null!);
   const keys = useKeyboard();
   const { camera } = useThree();
 
+  // Latest active-planet radius, read inside the render loop.
+  const radiusRef = useRef(radius);
+  radiusRef.current = radius;
+
   // Controller state lives in refs (mutated every frame, never re-rendered).
-  const position = useRef(new Vector3(0, PLANET_RADIUS, 0));
+  const position = useRef(new Vector3(0, radius, 0));
   const facing = useRef(new Vector3(0, 0, -1)); // body: where the hamster looks
   const camHeading = useRef(new Vector3(0, 0, -1)); // camera yaw; input frame
   const epoch = useRef(0);
@@ -47,10 +51,11 @@ export function Hamster() {
 
     // Leaving a planet bumps the epoch — snap the hamster back to the arrival
     // point while the screen is black, and snap (don't lerp) the camera too.
+    const radius = radiusRef.current;
     let snapCamera = false;
     if (game.planetEpoch !== epoch.current) {
       epoch.current = game.planetEpoch;
-      pos.set(0, PLANET_RADIUS, 0);
+      pos.set(0, radius, 0);
       face.set(0, 0, -1);
       head.set(0, 0, -1);
       snapCamera = true;
@@ -82,7 +87,7 @@ export function Hamster() {
       move.normalize();
       // Step directly in the input direction (no arc) — strafing, back-stepping
       // and diagonals all work as-is.
-      pos.addScaledVector(move, WALK_SPEED * dt).setLength(PLANET_RADIUS);
+      pos.addScaledVector(move, WALK_SPEED * dt).setLength(radius);
       upAt(pos, up); // up changed after moving across the curve
       move.addScaledVector(up, -move.dot(up)).normalize(); // re-tangent
       // The body turns to face where it walks…

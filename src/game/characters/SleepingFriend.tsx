@@ -20,6 +20,7 @@ interface FriendColors {
 
 interface Props {
   id: string;
+  radius: number;
   direction: Vector3;
   lines: string[];
   spin?: number;
@@ -32,18 +33,18 @@ const DEFAULT_COLORS: FriendColors = {
   ear: "#bd9bca",
 };
 
-export function SleepingFriend({ id, direction, lines, spin = 0.8, colors }: Props) {
+export function SleepingFriend({ id, radius, direction, lines, spin = 0.8, colors }: Props) {
   const root = useRef<Group>(null!);
   const body = useRef<Mesh>(null!);
   const head = useRef<Group>(null!);
   const wake = useRef(0); // 0 = curled asleep, 1 = sitting up
   const c = colors ?? DEFAULT_COLORS;
 
-  useInteractableProp(root, {
+  useInteractableProp(root, radius, {
     id,
     direction,
     spin,
-    radius: 2.2,
+    range: 2.2,
     prompt: "스페이스 — 살며시 다가가기",
     speaker: "잠든 햄스터",
     lines,
