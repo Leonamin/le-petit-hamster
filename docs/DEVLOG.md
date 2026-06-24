@@ -3,6 +3,73 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-24 — Bigger, farther sun (fix planet-dwarfs-star dissonance)
+- From the Clock Planet the (1.8×-enlarged) Rain Planet looked bigger than the
+  star — apparent size ∝ radius/distance, and a near planet beat the small/close
+  sun. Key insight: growing radius AND distance together cancels out (apparent
+  size ∝ radius/distance) — the radius must outpace distance. Final:
+  `STAR_RADIUS 7→30`, orbits clock `28→48`, rain `54→92`. Checked: sun-from-rain
+  ≈0.33 (≈2× the previous look) and sun-from-clock ≈0.63, both > any planet's
+  apparent size. Sun is a `decay=0` point light, so distance doesn't dim it;
+  shadow-far(400) + Stars radius(400) still contain the 92 orbit.
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
+## 2026-06-24 — Horizon haze + lifted sky (aerial perspective by day)
+- `objects/AtmosphereHaze.tsx`: a per-planet, daylight-driven `FogExp2` + scene
+  background lift. By day the far limb + distant planets haze toward a soft sky
+  tint and the background lifts from space-black to a muted horizon blue, so the
+  planet no longer meets hard black void (the "no atmosphere" oddness). Ramped
+  by `world.daylight`; takes over `scene.fog`/`scene.background` on mount and
+  RESTORES them on unmount, so airless planets that omit it stay crisp + black.
+  Mounted on Rain Planet alongside SkyLight.
+- Note: drei `<Stars>` uses a custom shader and isn't fogged, so stars stay crisp
+  over the (muted) day sky — fine + subtle. A true vertical sky-gradient dome
+  aligned to the hamster's LOCAL up would sell it harder but is the tricky
+  tiny-planet case; deferred.
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
+## 2026-06-24 — Daytime atmospheric-scattering fill (Rain Planet stops looking lunar)
+- The sun is a single fixed point light (`SUN_INTENSITY=3`, decay 0); only the
+  ambient varied slightly (0.16→0.42), so daytime never got bright — harsh key +
+  black shadows read as "the moon". Real daylight is bright/soft because the sky
+  scatters light as a huge fill.
+- New `objects/SkyLight.tsx`: a hemisphere fill that ramps with `world.daylight`
+  (sky/ground colour + intensity night→day), our cheap scattering stand-in.
+  Reusable + per-planet — airless worlds just omit it. Rain Planet now uses it
+  (bright overcast-blue by day, dim cool at night) instead of its old fixed
+  0.25 tint. (Relies on SolarSystem's useFrame running before the planet's, which
+  it does — mounted first in App, so `world.daylight` is fresh that frame.)
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
+## 2026-06-24 — Reusable prop placement, tree collision, observation camera
+- **`systems/placeProp.ts`:** one helper that calls `placeOnSurface` AND (given a
+  `collide` radius) registers a push-out collider, reading the surface position
+  back off the object instead of recomputing direction→position. Refactored
+  Rain + Clock planets onto it — removed the duplicated math, and the trees now
+  each get a slim trunk collider (`rain-tree-N`). So collision is fully reusable:
+  scenery via `placeProp({collide})`, NPCs via `useInteractableProp`'s
+  `collideRadius`. (Before: the mechanism in `world.ts` was generic but each
+  scenery prop hand-rolled its collider + position separately.)
+- **Observation camera (key `V`):** transient `observing` flag in the game store.
+  While on, the hamster freezes and the follow-cam detaches — drei
+  `<OrbitControls>` (no pan, damped, min/max dist scaled to the planet radius)
+  lets you orbit the planet and take in the star + other worlds. Entering resets
+  camera `up` to world-up; exiting snaps the follow-cam back. Click-to-move is
+  suppressed so the drag belongs to OrbitControls. Cleared on departure. HUD
+  shows mode-specific hints.
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
+## 2026-06-24 — Bigger Rain Planet + a grove and a cottage
+- Rain Planet radius 8 → **14.4** (1.8×) for a roomier world to wander. Bumped
+  its `orbitRadius` 46 → 54 so the larger body keeps clearance from the inner
+  Clock orbit (else the Clock Planet loomed too low on the horizon). Radius is
+  cleanly threaded via props + `placeOnSurface`, so props scaled automatically.
+- New primitive props: `objects/Tree.tsx` (faceted storybook canopy) and
+  `objects/Cottage.tsx` (warm emissive window glow). RainPlanet now scatters a
+  7-tree grove (hand-picked directions) + a cottage on the far side; cottage
+  registers a `rain-cottage` push-out collider.
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
 ## 2026-06-23 — Move atmosphere to distant planets (fix "water" look)
 - The rim-glow Atmosphere shell hugged the active planet (1.06×radius) and, from
   the surface camera, read as a translucent "flooded" layer on the ground — the

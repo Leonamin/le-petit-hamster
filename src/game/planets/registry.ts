@@ -43,10 +43,12 @@ export const PLANETS: PlanetDef[] = [
     id: "rain",
     name: "비의 행성",
     theme: "기다림",
-    radius: 8,
+    radius: 14.4, // 1.8× the original 8 — a roomier world to wander
+
     color: "#3f5a52",
     atmosphere: "#7fb6d8",
-    orbitRadius: 46,
+    orbitRadius: 92, // far out — keeps the star looking bigger than this planet
+
     orbitSpeed: 0.05,
     orbitPhase: 0,
     spinSpeed: 0.06,
@@ -59,7 +61,7 @@ export const PLANETS: PlanetDef[] = [
     radius: 5.5,
     color: "#6a5d49",
     atmosphere: "#e6b566",
-    orbitRadius: 28,
+    orbitRadius: 48,
     orbitSpeed: 0.085,
     orbitPhase: 2.2,
     spinSpeed: 0.1,

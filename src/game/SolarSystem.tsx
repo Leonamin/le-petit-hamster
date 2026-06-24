@@ -19,7 +19,8 @@ import { PLANETS, orbitPosition } from "./planets/registry";
  * surface, from the planet itself turning. Distant planets also spin their own
  * mesh, and are lit by a real point-light "sun" at the system centre.
  */
-const STAR_RADIUS = 7;
+const STAR_RADIUS = 30; // big + far (orbits pushed out) so the star always reads
+                        // as the largest body, never dwarfed by a near planet
 const SUN_INTENSITY = 3; // point light, decay 0 → uniform; tune to taste
 const Y_AXIS = new Vector3(0, 1, 0);
 const DAY_AMBIENT = new Color("#a8b6c4");
