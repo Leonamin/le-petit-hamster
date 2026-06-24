@@ -1,8 +1,12 @@
 import { useLayoutEffect, useRef } from "react";
 import { Group, Vector3 } from "three";
-import { addCollider, removeCollider } from "../world";
-import { placeOnSurface } from "../../lib/sphere";
+import { removeCollider } from "../world";
+import { placeProp } from "../systems/placeProp";
 import { Lighthouse } from "../objects/Lighthouse";
+import { Cottage } from "../objects/Cottage";
+import { SkyLight } from "../objects/SkyLight";
+import { AtmosphereHaze } from "../objects/AtmosphereHaze";
+import { Tree } from "../objects/Tree";
 import { Rain } from "../objects/Rain";
 import { Motes } from "../objects/Motes";
 import { DeparturePod } from "../objects/DeparturePod";
@@ -17,29 +21,64 @@ import { PlanetProps } from "./registry";
  */
 export function RainPlanet({ radius }: PlanetProps) {
   const lighthouse = useRef<Group>(null!);
+  const cottage = useRef<Group>(null!);
   const rocks = useRef<Group>(null!);
+  const trees = useRef<Group>(null!);
 
   useLayoutEffect(() => {
-    placeOnSurface(lighthouse.current, new Vector3(0.2, 1, 0.3), radius);
-    const lhPos = new Vector3(0.2, 1, 0.3).normalize().multiplyScalar(radius);
-    addCollider({ id: "rain-lighthouse", position: lhPos, radius: 1.3 });
-    const dirs: [number, number, number, number][] = [
+    const ids: string[] = [];
+    const place = (
+      obj: Group,
+      dir: [number, number, number],
+      spin: number,
+      collide?: { id: string; radius: number },
+    ) => {
+      const id = placeProp(obj, new Vector3(...dir), radius, { spin, collide });
+      if (id) ids.push(id);
+    };
+
+    place(lighthouse.current, [0.2, 1, 0.3], 0, { id: "rain-lighthouse", radius: 1.3 });
+    // A little cottage on the far side, a short walk from the lighthouse.
+    place(cottage.current, [-0.5, 0.6, 0.65], 0.6, { id: "rain-cottage", radius: 1.6 });
+
+    const rockDirs: [number, number, number, number][] = [
       [0.8, 0.3, -0.4, 0],
       [-0.3, 0.2, 0.9, 1.2],
       [0.1, -0.4, 0.9, 2.0],
       [-0.9, -0.2, -0.2, 0.5],
     ];
     rocks.current.children.forEach((rock, i) => {
-      const [x, y, z, spin] = dirs[i % dirs.length];
-      placeOnSurface(rock, new Vector3(x, y, z), radius, spin);
+      const [x, y, z, spin] = rockDirs[i % rockDirs.length];
+      place(rock as Group, [x, y, z], spin);
     });
-    return () => removeCollider("rain-lighthouse");
+
+    // A scattered little grove — directions chosen by hand for a natural spread.
+    // Each trunk gets a slim collider so the hamster bumps the trees.
+    const treeDirs: [number, number, number, number][] = [
+      [0.55, 0.7, 0.45, 0.4],
+      [-0.2, 0.85, 0.5, 1.6],
+      [0.7, 0.5, 0.5, 2.3],
+      [-0.7, 0.4, 0.55, 0.9],
+      [0.3, 0.2, -0.95, 1.1],
+      [-0.5, 0.1, -0.85, 2.8],
+      [0.95, 0.0, 0.1, 0.2],
+    ];
+    trees.current.children.forEach((tree, i) => {
+      const [x, y, z, spin] = treeDirs[i % treeDirs.length];
+      place(tree as Group, [x, y, z], spin, { id: `rain-tree-${i}`, radius: 0.7 });
+    });
+
+    return () => ids.forEach(removeCollider);
   }, [radius]);
 
   return (
     <group>
-      {/* Cool twilight tint on top of the star's light. */}
-      <hemisphereLight args={["#5a7088", "#10161e", 0.25]} />
+      {/* Atmospheric scattering fill: bright, soft, overcast-blue by day so the
+          planet reads as daytime (not lunar); dim and cool at night. */}
+      <SkyLight daySky="#c4dcec" dayGround="#5a6b61" dayIntensity={1.4} nightIntensity={0.14} />
+      {/* Aerial perspective: a soft horizon haze + lifted sky by day so the
+          planet doesn't meet hard black space. Fades out at night. */}
+      <AtmosphereHaze color="#aac4d4" daySky="#2a3a47" maxDensity={0.02} />
 
       {/* The planet body */}
       <mesh receiveShadow>
@@ -49,6 +88,21 @@ export function RainPlanet({ radius }: PlanetProps) {
 
       <group ref={lighthouse}>
         <Lighthouse />
+      </group>
+
+      <group ref={cottage}>
+        <Cottage />
+      </group>
+
+      {/* A small grove of cozy, faceted trees — deep wet greens. */}
+      <group ref={trees}>
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <Tree
+            key={i}
+            scale={0.85 + (i % 3) * 0.2}
+            foliage={i % 2 ? "#3f6b54" : "#356152"}
+          />
+        ))}
       </group>
 
       <group ref={rocks}>
