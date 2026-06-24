@@ -1,9 +1,7 @@
 import { Object3D, Vector3 } from "three";
 import { placeOnSurface } from "../../lib/sphere";
 import { addCollider } from "../world";
-import { surfaceRadius, surfaceNormal } from "../terrain";
-
-const _normal = new Vector3();
+import { surfaceRadius } from "../terrain";
 
 /**
  * Place a static prop on the planet surface, and — if `collide` is given —
@@ -21,11 +19,8 @@ export function placeProp(
   radius: number,
   opts: { spin?: number; collide?: { id: string; radius: number } } = {},
 ): string | null {
-  // Sit on the terrain surface (= base radius + local height), leaning to the
-  // slope normal so props on a hillside don't stick out radially.
-  const r = surfaceRadius(radius, direction);
-  const n = surfaceNormal(direction, radius, _normal);
-  placeOnSurface(obj, direction, r, opts.spin ?? 0, n);
+  // Sit on the terrain surface (= base radius + local height), not the sphere.
+  placeOnSurface(obj, direction, surfaceRadius(radius, direction), opts.spin ?? 0);
   if (opts.collide) {
     addCollider({ id: opts.collide.id, position: obj.position.clone(), radius: opts.collide.radius });
     return opts.collide.id;

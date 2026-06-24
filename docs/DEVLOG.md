@@ -3,20 +3,6 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
-## 2026-06-24 — Terrain Phase 2: slope tilt + bigger hills
-- Phase 1 hills barely registered ("you notice the horizon isn't a sphere" and
-  no more) because the hamster/camera stayed radially upright — no slope feedback.
-- Added `surfaceNormal(dir, base)` to terrain.ts (finite-difference normal of the
-  heightfield) and switched the controller's `up` from radial to the slope normal,
-  so the hamster + follow-camera now TILT to the hillside (positioning stays
-  radial). Props lean to the slope too: `placeOnSurface` gained an optional
-  `normal`, and placeProp/useInteractableProp pass `surfaceNormal`.
-- Made the hills bigger + sharper (amps ~3–4.8, widths ~0.3–0.5) and spread them
-  around the equator/underside so there's terrain to discover away from the
-  (near-flat) lighthouse spawn.
-- NEXT: feel-check tilt strength (reduce amp/raise width if too steep); per-planet
-  terrain; maybe slope-aware walk speed.
-
 ## 2026-06-24 — Terrain on the Rain Planet (Phase 1: height-follow)
 - The planet is no longer a perfect sphere. New `game/terrain.ts`: a registry
   for a `HeightField` (height offset over the sphere) built from hand-placed

@@ -64,20 +64,16 @@ export function turnToward(
 
 /**
  * Place a static prop on the planet surface at a given direction (need not be
- * normalised). Position is along the radial direction at `radius`; orientation
- * stands it up along `normal` if given (e.g. a terrain slope normal), else
- * radially. `spin` rotates it about that up axis.
+ * normalised), standing upright. `spin` rotates it about its own up axis.
  */
 export function placeOnSurface(
   obj: Object3D,
   direction: Vector3,
   radius: number,
   spin = 0,
-  normal?: Vector3,
 ): void {
-  const dir = upAt(direction); // radial unit
-  obj.position.copy(dir).multiplyScalar(radius);
-  const up = normal ?? dir;
+  const up = upAt(direction);
+  obj.position.copy(up).multiplyScalar(radius);
   // Any tangent works for a static prop; derive one then spin around up.
   const tangent = new Vector3(0, 1, 0).cross(up);
   if (tangent.lengthSq() < 1e-6) tangent.set(1, 0, 0);
