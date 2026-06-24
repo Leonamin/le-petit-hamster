@@ -17,8 +17,8 @@ import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
 import { playerPosition, playerState } from "../playerPosition";
 import { resolveCollisions } from "../world";
-import { heightAt } from "../terrain";
-import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
+import { heightAt, surfaceNormal } from "../terrain";
+import { surfaceOrientation, turnToward } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
 
@@ -144,7 +144,7 @@ export function Hamster({ radius }: { radius: number }) {
 
     const cam = useCameraConfig.getState();
 
-    upAt(pos, up);
+    surfaceNormal(pos, radius, up); // tilts to the slope (radial when flat)
     // The camera's heading defines the input frame: W = into the screen.
     // Keep it tangent to the surface every frame (up drifts as we walk).
     head.addScaledVector(up, -head.dot(up)).normalize();
@@ -181,7 +181,7 @@ export function Hamster({ radius }: { radius: number }) {
       // and diagonals all work as-is. Re-seat onto the terrain (height-follow).
       pos.addScaledVector(move, WALK_SPEED * dt);
       pos.setLength(radius + heightAt(pos));
-      upAt(pos, up); // up changed after moving across the curve
+      surfaceNormal(pos, radius, up); // slope normal after moving across the curve
       move.addScaledVector(up, -move.dot(up)).normalize(); // re-tangent
       // The body turns to face where it walks…
       turnToward(face, move, up, cam.turnRate * dt);
@@ -193,7 +193,7 @@ export function Hamster({ radius }: { radius: number }) {
     // frames where we didn't move), then refresh the surface frame.
     resolveCollisions(pos, radius);
     pos.setLength(radius + heightAt(pos));
-    upAt(pos, up);
+    surfaceNormal(pos, radius, up);
 
     // Keep facing tangent, then let the camera heading trail it (decoupled, so
     // low camFollow = strafe-style fixed camera, high = turn-to-face).

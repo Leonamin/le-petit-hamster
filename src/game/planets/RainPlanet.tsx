@@ -20,11 +20,13 @@ import { PlanetProps } from "./registry";
  * from the structures so they sit level; amplitudes are gentle vs the radius.
  */
 const RAIN_HILLS: Hill[] = [
-  { dir: [0.5, 0.1, -0.8], amp: 2.6, width: 0.55 }, // hill to the back
-  { dir: [-0.9, 0.1, 0.2], amp: 2.2, width: 0.5 }, // hill to the west
-  { dir: [0.2, -0.7, -0.5], amp: 2.8, width: 0.7 }, // big hill on the underside
-  { dir: [0.85, -0.2, 0.4], amp: 1.8, width: 0.45 }, // smaller mound
-  { dir: [-0.3, -0.5, 0.8], amp: -1.8, width: 0.7 }, // a shallow basin
+  { dir: [0.75, 0.4, -0.5], amp: 4.2, width: 0.4 }, // a hill to climb, near spawn
+  { dir: [-0.85, 0.3, 0.25], amp: 3.8, width: 0.4 }, // hill to the NW
+  { dir: [0.1, -0.3, -0.95], amp: 4.8, width: 0.45 }, // big far-side hill
+  { dir: [0.25, -0.85, 0.45], amp: 4.4, width: 0.5 }, // underside ridge
+  { dir: [0.95, -0.1, 0.3], amp: 3.4, width: 0.32 }, // sharp mound, east
+  { dir: [-0.3, -0.55, 0.78], amp: -2.8, width: 0.55 }, // a basin
+  { dir: [-0.1, 0.15, 0.99], amp: 3.0, width: 0.36 }, // hill on the +z equator
 ];
 
 /**
