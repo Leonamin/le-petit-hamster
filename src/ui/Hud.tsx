@@ -16,6 +16,7 @@ export function Hud() {
   const nearby = useGame((s) => (s.nearbyId ? s.interactables[s.nearbyId] : null));
   const dialogue = useGame((s) => s.dialogue);
   const departing = useGame((s) => s.departing);
+  const observing = useGame((s) => s.observing);
 
   return (
     <>
@@ -23,12 +24,17 @@ export function Hud() {
       <Dialogue />
       <Fade />
       <CameraDebug />
-      {!dialogue && !departing && (
-        <div className="hint">
-          {nearby
-            ? nearby.prompt
-            : "WASD · 화살표 · 클릭(꾹)으로 햄스터를 움직여 보세요"}
-        </div>
+      {observing ? (
+        <div className="hint">드래그로 둘러보기 · 휠로 줌 · V로 햄스터에게 돌아가기</div>
+      ) : (
+        !dialogue &&
+        !departing && (
+          <div className="hint">
+            {nearby
+              ? nearby.prompt
+              : "WASD · 화살표 · 클릭(꾹)으로 이동 · V로 자유 관찰"}
+          </div>
+        )
       )}
     </>
   );

@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Group,
@@ -45,6 +45,10 @@ export function Hamster({ radius }: { radius: number }) {
   const group = useRef<Group>(null!);
   const keys = useKeyboard();
   const { camera, gl } = useThree();
+  // Free observation camera: when on, the follow-cam detaches and OrbitControls
+  // takes over. Subscribed (reactive) so we can mount/unmount the controls.
+  const observing = useGame((s) => s.observing);
+  const wasObserving = useRef(false);
 
   // Latest active-planet radius, read inside the render loop.
   const radiusRef = useRef(radius);
@@ -65,6 +69,8 @@ export function Hamster({ radius }: { radius: number }) {
     };
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return; // left button only
+      // In observation mode the drag belongs to OrbitControls — don't capture it.
+      if (useGame.getState().observing) return;
       pointer.current.active = true;
       toNDC(e);
       try {
@@ -143,8 +149,9 @@ export function Hamster({ radius }: { radius: number }) {
     head.addScaledVector(up, -head.dot(up)).normalize();
     right.copy(head).cross(up).normalize(); // camHeading × up = right
 
-    // Movement is frozen while talking or while leaving — keep moments quiet.
-    const frozen = game.dialogue !== null || game.departing;
+    // Movement is frozen while talking, leaving, or in observation mode.
+    const observing = game.observing;
+    const frozen = game.dialogue !== null || game.departing || observing;
 
     move.set(0, 0, 0);
     if (!frozen && pointer.current.active) {
@@ -201,6 +208,19 @@ export function Hamster({ radius }: { radius: number }) {
       camera.updateProjectionMatrix();
     }
 
+    // While observing, OrbitControls owns the camera — leave it alone. On the
+    // first frame of observing, reset `up` to world-up so the orbit is upright;
+    // on the frame we exit, snap the follow-cam back instead of lerping from afar.
+    if (observing) {
+      if (!wasObserving.current) camera.up.set(0, 1, 0);
+      wasObserving.current = true;
+      return;
+    }
+    if (wasObserving.current) {
+      wasObserving.current = false;
+      snapCamera = true;
+    }
+
     // Follow camera: trails behind the camera heading, raised, looking ahead/up.
     // During dialogue, push in a touch for an intimate framing.
     const talking = game.dialogue !== null;
@@ -230,15 +250,31 @@ export function Hamster({ radius }: { radius: number }) {
   });
 
   return (
-    <group ref={group}>
-      {MODEL_URL ? (
-        <Suspense fallback={<HamsterMesh anim={anim} />}>
-          <HamsterModel url={MODEL_URL} anim={anim} />
-        </Suspense>
-      ) : (
-        <HamsterMesh anim={anim} />
+    <>
+      <group ref={group}>
+        {MODEL_URL ? (
+          <Suspense fallback={<HamsterMesh anim={anim} />}>
+            <HamsterModel url={MODEL_URL} anim={anim} />
+          </Suspense>
+        ) : (
+          <HamsterMesh anim={anim} />
+        )}
+      </group>
+
+      {/* Free observation camera — orbit the planet to take in the sky. */}
+      {observing && (
+        <OrbitControls
+          makeDefault
+          enablePan={false}
+          enableDamping
+          dampingFactor={0.08}
+          rotateSpeed={0.6}
+          zoomSpeed={0.8}
+          minDistance={radius * 1.15}
+          maxDistance={radius * 8}
+        />
       )}
-    </group>
+    </>
   );
 }
 

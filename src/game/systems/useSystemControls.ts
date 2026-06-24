@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useSystemConfig } from "../systemConfig";
+import { useGame } from "../state";
 
 /**
  * Global keys for the star system:
+ *   V — toggle free observation camera (자유 관찰)
  *   K — pause/resume celestial motion (공전)
  *   L — show/hide orbit rings (궤도선)
  *   N / M — slow down / speed up (공전 배속)
@@ -14,6 +16,9 @@ export function useSystemControls(): void {
     const onKey = (e: KeyboardEvent) => {
       const s = useSystemConfig.getState();
       switch (e.code) {
+        case "KeyV":
+          useGame.getState().toggleObserve();
+          break;
         case "KeyK":
           s.toggleOrbit();
           break;

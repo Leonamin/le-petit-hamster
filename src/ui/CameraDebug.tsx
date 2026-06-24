@@ -35,7 +35,7 @@ export function CameraDebug() {
   const weatherAuto = useSystemConfig((s) => s.weatherAuto);
 
   if (!debug) {
-    return <div className="debug-toggle">C — 디버그 · K 공전 · L 궤도선</div>;
+    return <div className="debug-toggle">C — 디버그 · V 관찰 · K 공전 · L 궤도선</div>;
   }
 
   const values = { distance, height, lookUp, fov, turnRate, camFollow };

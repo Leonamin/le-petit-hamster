@@ -45,6 +45,8 @@ interface GameState {
   currentPlanet: number;
   /** Number of planets in the registry (set once by App). */
   planetCount: number;
+  /** Free "observation" camera: hamster frozen, orbit the planet to look around. */
+  observing: boolean;
 
   register: (item: Interactable) => void;
   unregister: (id: string) => void;
@@ -56,6 +58,8 @@ interface GameState {
   revealStep: () => void;
   awakenFriend: (id: string) => void;
   leavePlanet: () => void;
+  /** Toggle the free observation camera. */
+  toggleObserve: () => void;
 }
 
 export const useGame = create<GameState>((set, get) => ({
@@ -67,6 +71,7 @@ export const useGame = create<GameState>((set, get) => ({
   planetEpoch: 0,
   currentPlanet: 0,
   planetCount: 1,
+  observing: false,
 
   register: (item) =>
     set((s) => ({ interactables: { ...s.interactables, [item.id]: item } })),
@@ -136,7 +141,7 @@ export const useGame = create<GameState>((set, get) => ({
   leavePlanet: () => {
     if (get().departing) return;
     // Fade out (CSS ~1.2s) → swap to the next planet while black → fade in.
-    set({ departing: true, dialogue: null, nearbyId: null });
+    set({ departing: true, dialogue: null, nearbyId: null, observing: false });
     window.setTimeout(() => {
       set((s) => ({
         planetEpoch: s.planetEpoch + 1,
@@ -145,4 +150,7 @@ export const useGame = create<GameState>((set, get) => ({
       window.setTimeout(() => set({ departing: false }), 450);
     }, 1300);
   },
+
+  // Don't enter observe while leaving (the camera is mid-transition).
+  toggleObserve: () => set((s) => (s.departing ? s : { observing: !s.observing })),
 }));
