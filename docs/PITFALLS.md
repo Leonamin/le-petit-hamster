@@ -12,19 +12,6 @@ for it twice. Add to this freely — it is the most valuable doc over time.
   heading TOWARD it at a capped rate (`turnRate`), within the tangent plane
   about `up`. See `Hamster.tsx`.
 
-## Terrain (heightfield over the sphere)
-- **Register the heightfield in `useMemo`, not in an effect.** A planet's NPCs
-  are children, and React fires child effects BEFORE the parent's. If the
-  planet registers its terrain in `useLayoutEffect`, the NPCs' placement effects
-  have already run against the flat base radius and end up buried/floating.
-  Registering in `useMemo` (render phase) sets it before any child renders/effects.
-- **`clearTerrain(fn)` must be guarded.** On travel, the NEW planet's render
-  (useMemo) runs before the OLD planet's unmount cleanup, so a blind
-  `clearTerrain()` in cleanup would wipe the new planet's terrain. Clear only if
-  the active field is still ours (`active === fn`).
-- **Keep height-follow allocation-free.** `heightAt` reuses a module scratch
-  Vector3; the controller calls it every frame. Don't `new Vector3()` in there.
-
 ## Spherical movement
 - **Forward must be re-projected onto the tangent plane every frame.** As you
   walk across the curve, "up" changes; a stale forward drifts off-surface.

@@ -3,21 +3,6 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
-## 2026-06-24 — Terrain on the Rain Planet (Phase 1: height-follow)
-- The planet is no longer a perfect sphere. New `game/terrain.ts`: a registry
-  for a `HeightField` (height offset over the sphere) built from hand-placed
-  Gaussian hills (`makeHills`, NOT noise — VISION). Surface distance at a
-  direction = `baseRadius + height(dir)`.
-- Wired through the "heart": the controller re-seats `pos` to the terrain each
-  frame (`heightAt`), prop placement (`placeProp`, `useInteractableProp`) and
-  collision re-seat use `surfaceRadius`. The Rain Planet mesh is CPU-displaced
-  along normals to match the field exactly (140² sphere, recomputed normals).
-- Phase 1 keeps `up` radial (hamster stands upright on gentle hills); Phase 2
-  would tilt to the true surface normal. Other planets register no terrain →
-  `heightAt` returns 0 → unchanged flat behaviour. See PITFALLS for the
-  useMemo-registration + guarded-clear timing traps.
-- NEXT: feel-check the hills; maybe Phase 2 (slope tilt) or per-planet terrain.
-
 ## 2026-06-24 — Small + brilliant sun (Earthrise feel, supersedes "bigger sun")
 - Reframed the goal with real angular sizes: from the Moon, Earth (~1.9°) looks
   ~3.7× the Sun (~0.53°). So a neighbour planet looking BIGGER than the sun is

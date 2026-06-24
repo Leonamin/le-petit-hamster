@@ -1,7 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { Group, SphereGeometry, Vector3 } from "three";
+import { useLayoutEffect, useRef } from "react";
+import { Group, Vector3 } from "three";
 import { removeCollider } from "../world";
-import { makeHills, setTerrain, clearTerrain, type Hill } from "../terrain";
 import { placeProp } from "../systems/placeProp";
 import { Lighthouse } from "../objects/Lighthouse";
 import { Cottage } from "../objects/Cottage";
@@ -16,18 +15,6 @@ import { SleepingFriend } from "../characters/SleepingFriend";
 import { PlanetProps } from "./registry";
 
 /**
- * Hand-placed rolling hills + a shallow basin (NOT noise — VISION). Kept away
- * from the structures so they sit level; amplitudes are gentle vs the radius.
- */
-const RAIN_HILLS: Hill[] = [
-  { dir: [0.5, 0.1, -0.8], amp: 2.6, width: 0.55 }, // hill to the back
-  { dir: [-0.9, 0.1, 0.2], amp: 2.2, width: 0.5 }, // hill to the west
-  { dir: [0.2, -0.7, -0.5], amp: 2.8, width: 0.7 }, // big hill on the underside
-  { dir: [0.85, -0.2, 0.4], amp: 1.8, width: 0.45 }, // smaller mound
-  { dir: [-0.3, -0.5, 0.8], amp: -1.8, width: 0.7 }, // a shallow basin
-];
-
-/**
  * Rain Planet — Theme: Waiting (PLANETS.md). Lit by the system's star; adds
  * only a cool sky tint of its own. Hosts its scenery, NPC, sleeping friend and
  * departure pod. Hand-authored, no procedural generation (VISION).
@@ -37,31 +24,6 @@ export function RainPlanet({ radius }: PlanetProps) {
   const cottage = useRef<Group>(null!);
   const rocks = useRef<Group>(null!);
   const trees = useRef<Group>(null!);
-
-  // Register the heightfield during render (in useMemo), so the controller and
-  // even child NPCs (whose effects run before ours) place onto the terrain.
-  const terrain = useMemo(() => {
-    const fn = makeHills(RAIN_HILLS);
-    setTerrain(fn);
-    return fn;
-  }, []);
-  useLayoutEffect(() => () => clearTerrain(terrain), [terrain]);
-
-  // Displace the planet mesh along its normals to match the heightfield exactly.
-  const geometry = useMemo(() => {
-    const g = new SphereGeometry(radius, 140, 140);
-    const attr = g.attributes.position;
-    const v = new Vector3();
-    for (let i = 0; i < attr.count; i++) {
-      v.fromBufferAttribute(attr, i).normalize();
-      const len = radius + terrain(v.x, v.y, v.z);
-      attr.setXYZ(i, v.x * len, v.y * len, v.z * len);
-    }
-    attr.needsUpdate = true;
-    g.computeVertexNormals();
-    return g;
-  }, [radius, terrain]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
 
   useLayoutEffect(() => {
     const ids: string[] = [];
@@ -118,8 +80,9 @@ export function RainPlanet({ radius }: PlanetProps) {
           planet doesn't meet hard black space. Fades out at night. */}
       <AtmosphereHaze color="#aac4d4" daySky="#2a3a47" maxDensity={0.02} />
 
-      {/* The planet body — displaced into rolling hills (see RAIN_HILLS). */}
-      <mesh receiveShadow geometry={geometry}>
+      {/* The planet body */}
+      <mesh receiveShadow>
+        <sphereGeometry args={[radius, 64, 64]} />
         <meshStandardMaterial color="#3f5a52" roughness={1} metalness={0} />
       </mesh>
 

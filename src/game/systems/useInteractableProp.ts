@@ -2,7 +2,6 @@ import { RefObject, useLayoutEffect } from "react";
 import { Group, Vector3 } from "three";
 import { useGame } from "../state";
 import { addCollider, removeCollider } from "../world";
-import { surfaceRadius } from "../terrain";
 import { placeOnSurface } from "../../lib/sphere";
 
 interface Options {
@@ -32,9 +31,8 @@ export function useInteractableProp(
   opts: Options,
 ): void {
   useLayoutEffect(() => {
-    const r = surfaceRadius(planetRadius, opts.direction);
-    placeOnSurface(ref.current!, opts.direction, r, opts.spin ?? 0);
-    const position = opts.direction.clone().normalize().multiplyScalar(r);
+    placeOnSurface(ref.current!, opts.direction, planetRadius, opts.spin ?? 0);
+    const position = opts.direction.clone().normalize().multiplyScalar(planetRadius);
     useGame.getState().register({
       id: opts.id,
       position,
