@@ -17,6 +17,7 @@ import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
 import { playerPosition, playerState } from "../playerPosition";
 import { resolveCollisions } from "../world";
+import { heightAt } from "../terrain";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
@@ -135,7 +136,7 @@ export function Hamster({ radius }: { radius: number }) {
     let snapCamera = false;
     if (game.planetEpoch !== epoch.current) {
       epoch.current = game.planetEpoch;
-      pos.set(0, radius, 0);
+      pos.set(0, 1, 0).setLength(radius + heightAt(pos)); // arrival point, on terrain
       face.set(0, 0, -1);
       head.set(0, 0, -1);
       snapCamera = true;
@@ -177,8 +178,9 @@ export function Hamster({ radius }: { radius: number }) {
     if (moving) {
       move.normalize();
       // Step directly in the input direction (no arc) — strafing, back-stepping
-      // and diagonals all work as-is.
-      pos.addScaledVector(move, WALK_SPEED * dt).setLength(radius);
+      // and diagonals all work as-is. Re-seat onto the terrain (height-follow).
+      pos.addScaledVector(move, WALK_SPEED * dt);
+      pos.setLength(radius + heightAt(pos));
       upAt(pos, up); // up changed after moving across the curve
       move.addScaledVector(up, -move.dot(up)).normalize(); // re-tangent
       // The body turns to face where it walks…
@@ -187,8 +189,10 @@ export function Hamster({ radius }: { radius: number }) {
     anim.current.speed = moving ? 1 : 0;
     playerState.speed = anim.current.speed; // shared with audio (footsteps)
 
-    // Push out of solid props, then refresh the surface frame.
+    // Push out of solid props, re-seat on the terrain (also catches idle/spawn
+    // frames where we didn't move), then refresh the surface frame.
     resolveCollisions(pos, radius);
+    pos.setLength(radius + heightAt(pos));
     upAt(pos, up);
 
     // Keep facing tangent, then let the camera heading trail it (decoupled, so

@@ -1,4 +1,5 @@
 import { Vector3 } from "three";
+import { heightAt } from "./terrain";
 
 /**
  * Non-React world state shared with systems. `daylight` (0 night .. 1 day) is
@@ -36,7 +37,8 @@ export function resolveCollisions(pos: Vector3, planetRadius: number): void {
     const dist = pos.distanceTo(c.position);
     if (dist > 1e-4 && dist < c.radius) {
       _push.copy(pos).sub(c.position).multiplyScalar(c.radius / dist);
-      pos.copy(c.position).add(_push).setLength(planetRadius);
+      pos.copy(c.position).add(_push);
+      pos.setLength(planetRadius + heightAt(pos)); // re-seat onto the terrain
     }
   }
 }
