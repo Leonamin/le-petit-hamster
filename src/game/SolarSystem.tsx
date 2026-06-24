@@ -1,12 +1,13 @@
 import { useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { useMemo, useRef } from "react";
-import { AmbientLight, Color, DoubleSide, Group, MathUtils, Mesh, PointLight, Vector3 } from "three";
+import { AmbientLight, Color, DoubleSide, Group, MathUtils, PointLight, Vector3 } from "three";
 import { useGame } from "./state";
 import { useSystemConfig } from "./systemConfig";
 import { playerPosition } from "./playerPosition";
 import { world } from "./world";
 import { Atmosphere } from "./objects/Atmosphere";
+import { Corona } from "./objects/Corona";
 import { PLANETS, orbitPosition } from "./planets/registry";
 
 /**
@@ -19,8 +20,9 @@ import { PLANETS, orbitPosition } from "./planets/registry";
  * surface, from the planet itself turning. Distant planets also spin their own
  * mesh, and are lit by a real point-light "sun" at the system centre.
  */
-const STAR_RADIUS = 30; // big + far (orbits pushed out) so the star always reads
-                        // as the largest body, never dwarfed by a near planet
+const STAR_RADIUS = 5; // small bright core; the Corona halo (not size) makes it
+                       // read as a dazzling sun. Like the real sun, a neighbour
+                       // planet can appear larger (Earthrise) — that's intended.
 const SUN_INTENSITY = 3; // point light, decay 0 → uniform; tune to taste
 const Y_AXIS = new Vector3(0, 1, 0);
 const DAY_AMBIENT = new Color("#a8b6c4");
@@ -31,7 +33,7 @@ export function SolarSystem() {
   const showOrbits = useSystemConfig((s) => s.showOrbits);
 
   const sky = useRef<Group>(null!);
-  const star = useRef<Mesh>(null!);
+  const star = useRef<Group>(null!);
   const sunLight = useRef<PointLight>(null!);
   const ambient = useRef<AmbientLight>(null!);
   const orbits = useRef<Group>(null!);
@@ -107,10 +109,15 @@ export function SolarSystem() {
         shadow-camera-near={0.5}
         shadow-camera-far={400}
       />
-      <mesh ref={star}>
-        <sphereGeometry args={[STAR_RADIUS, 32, 32]} />
-        <meshBasicMaterial color="#ffe6a8" toneMapped={false} />
-      </mesh>
+      {/* The sun: a small, near-white hot core wrapped in a big additive corona
+          so it dazzles like the real sun without being a giant disc. */}
+      <group ref={star}>
+        <mesh>
+          <sphereGeometry args={[STAR_RADIUS, 32, 32]} />
+          <meshBasicMaterial color="#fff4e0" toneMapped={false} />
+        </mesh>
+        <Corona size={STAR_RADIUS * 9} color="#ffd9a0" intensity={1.6} falloff={2.8} />
+      </group>
 
       {/* Orbit rings, centred on the star. */}
       {showOrbits && (

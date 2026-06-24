@@ -3,6 +3,20 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-24 — Small + brilliant sun (Earthrise feel, supersedes "bigger sun")
+- Reframed the goal with real angular sizes: from the Moon, Earth (~1.9°) looks
+  ~3.7× the Sun (~0.53°). So a neighbour planet looking BIGGER than the sun is
+  realistic — the sun reads as the sun by brilliance, not size. The earlier
+  dissonance was really a flat, dull sun, not a size problem.
+- So: shrank the star (`STAR_RADIUS 30→5`) and added `objects/Corona.tsx` — a
+  camera-facing additive glow (drei Billboard + radial-falloff shader) sized ~9×
+  the core, plus a near-white hot core. Small dazzling sun; from the Clock
+  Planet the Rain Planet now reads as a larger lit marble beside it. Orbits kept
+  (clock 48 / rain 92). Light unchanged (sun visual ≠ the point light).
+- Possible next: solar halo in the rain sky (atmospheric glow around the sun);
+  stronger blue-marble look on distant planets (atmosphere rim already helps).
+- NEXT: matching content pass on the Clock Planet; save/persistence; 3rd planet.
+
 ## 2026-06-24 — Bigger, farther sun (fix planet-dwarfs-star dissonance)
 - From the Clock Planet the (1.8×-enlarged) Rain Planet looked bigger than the
   star — apparent size ∝ radius/distance, and a near planet beat the small/close
