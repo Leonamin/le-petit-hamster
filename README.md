@@ -30,3 +30,14 @@ A playable storybook about a small hamster traveling between tiny planets.
 Le Petit Hamster is not about completion.
 
 It is about curiosity, travel, and encounters.
+
+## Deploy
+
+Deployed on Cloudflare Pages. The production branch is `main`.
+
+```sh
+pnpm build        # type-check + vite build → dist/
+pnpm deploy:cf    # wrangler pages deploy dist --branch main
+```
+
+The custom domain is `https://lepetithamster.cuteshrew.com` (CNAME in Cloudflare DNS).
