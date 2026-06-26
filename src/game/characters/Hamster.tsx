@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
+import { ElementRef, MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Group,
   MathUtils,
@@ -49,6 +49,7 @@ export function Hamster({ radius }: { radius: number }) {
   // takes over. Subscribed (reactive) so we can mount/unmount the controls.
   const observing = useGame((s) => s.observing);
   const wasObserving = useRef(false);
+  const orbit = useRef<ElementRef<typeof OrbitControls>>(null);
 
   // Latest active-planet radius, read inside the render loop.
   const radiusRef = useRef(radius);
@@ -212,8 +213,19 @@ export function Hamster({ radius }: { radius: number }) {
     // first frame of observing, reset `up` to world-up so the orbit is upright;
     // on the frame we exit, snap the follow-cam back instead of lerping from afar.
     if (observing) {
-      if (!wasObserving.current) camera.up.set(0, 1, 0);
+      if (!wasObserving.current) {
+        camera.up.set(0, 1, 0);
+        // Frame the hamster: drop the camera behind + above it so the character
+        // is in view immediately instead of pointing at empty space.
+        camPos.copy(pos).addScaledVector(head, -3).addScaledVector(up, 2);
+        camera.position.copy(camPos);
+      }
       wasObserving.current = true;
+      // Orbit the hamster, not the planet centre, so you can inspect it close up.
+      if (orbit.current) {
+        orbit.current.target.copy(pos);
+        orbit.current.update();
+      }
       return;
     }
     if (wasObserving.current) {
@@ -261,16 +273,18 @@ export function Hamster({ radius }: { radius: number }) {
         )}
       </group>
 
-      {/* Free observation camera — orbit the planet to take in the sky. */}
+      {/* Free observation camera — orbit the hamster to inspect it, or pull back
+          to take in the planet/sky. */}
       {observing && (
         <OrbitControls
+          ref={orbit}
           makeDefault
-          enablePan={false}
+          enablePan
           enableDamping
           dampingFactor={0.08}
           rotateSpeed={0.6}
           zoomSpeed={0.8}
-          minDistance={radius * 1.15}
+          minDistance={0.5}
           maxDistance={radius * 8}
         />
       )}
