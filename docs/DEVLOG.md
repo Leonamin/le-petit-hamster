@@ -3,6 +3,23 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-26 — Orbit-during-play + true free camera (V)
+- Two new camera controls on top of the Mario Galaxy base from the previous
+  entry:
+  1. **Right-click drag = orbit around the hamster** (BotW-style). Yaw
+     accumulates in `orbitYaw`; each frame `head = BASE_HEAD.applyAxisAngle(
+     up, orbitYaw.current)`, so the camera moves around the body AND the
+     input frame rotates with it (W = into the new screen direction).
+     Sensitivity 0.005 rad/px. Context menu suppressed on the canvas.
+  2. **V key = true free camera** (FlyControls, was OrbitControls). Camera is
+     no longer locked to the hamster: WASD/QE fly, left-drag look, no target.
+     Body is frozen while observing. Exiting V snaps the follow-cam back so
+     you don't lerp from across the planet.
+- `OrbitControls` ref + the `ElementRef` import are gone. `camera.lookAt(pos)`
+  is called once on entry so FlyControls' initial frame is well-defined.
+- PITFALLS gained a quick note: any future input that reads the camera heading
+  must remember that the heading is now user-driven, not body-driven.
+
 ## 2026-06-26 — Camera no longer follows body rotation (W↔S chase fix)
 - Bug: pressing W then S never produced a clean 180° flip. Body rotated to
   ~57° in 0.1s, ~249° after 0.5s, and the camera kept spinning after release.

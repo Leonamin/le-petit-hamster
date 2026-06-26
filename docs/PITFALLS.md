@@ -22,6 +22,10 @@ for it twice. Add to this freely — it is the most valuable doc over time.
   (Mario Galaxy style) — only re-project onto the tangent plane each frame,
   don't have it chase `face`. The camera POSITION still trails the body, so
   framing is unchanged; only the heading becomes independent.
+- **The world-fixed heading is now USER-driven via right-click drag** (see
+  2026-06-26 entry above). Anything that reads `head` for input gets a
+  player-controlled direction. Don't reintroduce `head ← face` thinking
+  you're "tightening the loop" — that's exactly the chase we just deleted.
 ## Spherical movement
 - **Forward must be re-projected onto the tangent plane every frame.** As you
   walk across the curve, "up" changes; a stale forward drifts off-surface.
