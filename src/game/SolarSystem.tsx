@@ -79,8 +79,12 @@ export function SolarSystem() {
     const upDot = scratch.up.copy(playerPosition).normalize().dot(scratch.sunDir);
     const day = MathUtils.clamp(upDot + 0.15, 0, 1); // 0 night .. 1 day
     world.daylight = day;
-    ambient.current.intensity = MathUtils.lerp(0.16, 0.42, day);
+    ambient.current.intensity = MathUtils.lerp(0.08, 0.42, day);
     ambient.current.color.copy(NIGHT_AMBIENT).lerp(DAY_AMBIENT, day);
+
+    // Turn the sun itself down at night so light doesn't leak through the
+    // planet's shadow-map boundaries (large sphere + 1024 map = imperfect cut).
+    sunLight.current.intensity = MathUtils.lerp(0, SUN_INTENSITY, day);
 
     // Weather follows the time of day (darker = rainier), unless overridden.
     if (sys.weatherAuto) {
@@ -105,9 +109,10 @@ export function SolarSystem() {
         decay={0}
         color="#fff2d8"
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={[2048, 2048]}
         shadow-camera-near={0.5}
         shadow-camera-far={400}
+        shadow-bias={-0.0005}
       />
       {/* The sun: a small, near-white hot core wrapped in a big additive corona
           so it dazzles like the real sun without being a giant disc. */}

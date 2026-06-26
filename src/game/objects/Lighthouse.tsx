@@ -13,12 +13,12 @@ export function Lighthouse() {
         <meshStandardMaterial color="#e8e4dc" roughness={0.9} />
       </mesh>
       {/* Red band */}
-      <mesh position={[0, 2.4, 0]}>
+      <mesh position={[0, 2.4, 0]} castShadow>
         <cylinderGeometry args={[0.62, 0.62, 0.5, 16]} />
         <meshStandardMaterial color="#b65b56" roughness={0.9} />
       </mesh>
       {/* Lantern room */}
-      <mesh position={[0, 3.55, 0]}>
+      <mesh position={[0, 3.55, 0]} castShadow>
         <cylinderGeometry args={[0.5, 0.5, 0.7, 12]} />
         <meshStandardMaterial color="#3a4a5a" roughness={0.6} />
       </mesh>
@@ -33,7 +33,7 @@ export function Lighthouse() {
       </mesh>
       <pointLight position={[0, 3.55, 0]} intensity={6} distance={14} color="#ffd9a0" />
       {/* Roof */}
-      <mesh position={[0, 4.15, 0]}>
+      <mesh position={[0, 4.15, 0]} castShadow>
         <coneGeometry args={[0.6, 0.7, 12]} />
         <meshStandardMaterial color="#7a4f48" roughness={0.9} />
       </mesh>

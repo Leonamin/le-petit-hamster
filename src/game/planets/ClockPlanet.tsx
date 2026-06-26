@@ -3,6 +3,7 @@ import { Group, Vector3 } from "three";
 import { removeCollider } from "../world";
 import { placeProp } from "../systems/placeProp";
 import { ClockTower } from "../objects/ClockTower";
+import { SkyLight } from "../objects/SkyLight";
 import { Motes } from "../objects/Motes";
 import { DeparturePod } from "../objects/DeparturePod";
 import { ClockArtisan } from "../characters/ClockArtisan";
@@ -37,11 +38,18 @@ export function ClockPlanet({ radius }: PlanetProps) {
 
   return (
     <group>
-      {/* Warm amber dusk tint on top of the star's light. */}
-      <hemisphereLight args={["#e6c48a", "#3a2c1e", 0.3]} />
+      {/* Warm amber dusk tint on top of the star's light. Fades at night. */}
+      <SkyLight
+        daySky="#e6c48a"
+        nightSky="#2a1e14"
+        dayGround="#3a2c1e"
+        nightGround="#0b0804"
+        dayIntensity={0.3}
+        nightIntensity={0.06}
+      />
 
       {/* The planet body */}
-      <mesh receiveShadow>
+      <mesh receiveShadow castShadow>
         <sphereGeometry args={[radius, 64, 64]} />
         <meshStandardMaterial color="#5b5142" roughness={1} metalness={0} />
       </mesh>
@@ -52,7 +60,7 @@ export function ClockPlanet({ radius }: PlanetProps) {
 
       <group ref={stones}>
         {[0, 1, 2, 3].map((i) => (
-          <mesh key={i} scale={0.4 + (i % 2) * 0.2}>
+          <mesh key={i} scale={0.4 + (i % 2) * 0.2} castShadow receiveShadow>
             <dodecahedronGeometry args={[1, 0]} />
             <meshStandardMaterial color="#6a5d49" roughness={1} flatShading />
           </mesh>

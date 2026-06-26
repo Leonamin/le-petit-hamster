@@ -23,7 +23,7 @@ export function Cottage({
         <meshStandardMaterial color={roof} roughness={1} flatShading />
       </mesh>
       {/* Door */}
-      <mesh position={[0, 0.5, 0.86]}>
+      <mesh position={[0, 0.5, 0.86]} castShadow receiveShadow>
         <boxGeometry args={[0.5, 0.9, 0.05]} />
         <meshStandardMaterial color="#4a3527" roughness={1} />
       </mesh>
