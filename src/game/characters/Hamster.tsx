@@ -25,6 +25,9 @@ const ORIGIN = new Vector3(0, 0, 0);
 // orbitYaw = 0. Right-click drag rotates `head` around the planet's up axis
 // from this base each frame (see useFrame).
 const BASE_HEAD = new Vector3(0, 0, -1);
+// Stable fallback axes for the pole-degeneracy guard (line ~211).
+const _VEC3_Y = new Vector3(0, 1, 0);
+const _VEC3_X = new Vector3(1, 0, 0);
 
 /**
  * To use a real hamster model instead of the primitive one: drop a `.glb` into
@@ -210,7 +213,15 @@ export function Hamster({ radius }: { radius: number }) {
     } else {
       head.copy(BASE_HEAD).applyAxisAngle(up, orbitYaw.current);
     }
-    head.addScaledVector(up, -head.dot(up)).normalize();
+    head.addScaledVector(up, -head.dot(up));
+    // At sphere poles where up ∥ BASE_HEAD the projection collapses to zero.
+    // Fall back to a stable tangent so the heading never degenerates to NaN.
+    if (head.lengthSq() < 1e-4) {
+      const ref = Math.abs(up.y) < 0.9 ? _VEC3_Y : _VEC3_X;
+      head.crossVectors(up, ref).normalize().applyAxisAngle(up, orbitYaw.current);
+    } else {
+      head.normalize();
+    }
     right.copy(head).cross(up).normalize(); // camHeading × up = right
 
     // Movement is frozen while talking, leaving, or in observation mode.
