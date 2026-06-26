@@ -42,8 +42,10 @@ an 8-legged, 2-tailed hamster). Those don't hurt inanimate props, where its
 detail is an asset. Separately, Meshy auto-rig is humanoid/biped only + needs
 textured meshes, so animals couldn't be rigged there anyway — hence procedural
 code animation, which also keeps the flat-matte look (matches D2).
-**Open:** the cute-character approach is unsettled — code primitives vs a Meshy
-**image-to-3D** pass driven by a controlled cute concept (the likely fix for both
-the anatomy errors and the style, since it follows a reference silhouette).
+**Cute characters:** generate a concept image (gpt-image-2, `scripts/concept.mjs`)
+→ Meshy **image-to-3D** (`meshy.mjs --image`, untextured). Reconstructing from
+the concept silhouette reproduces the cute shape AND fixes the limb-count
+hallucination (text-to-3D gave 8 legs; image-to-3D gave correct anatomy). Lock
+the look in 2D first, then colour the mesh in-engine. (Hero not yet wired in.)
 **Rejected:** Meshy text-to-3D for hero/animal characters; Quaternius pre-rigged
 animals (style clash); Meshy rigging for animals (unsupported).

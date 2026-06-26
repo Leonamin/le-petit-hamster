@@ -1,0 +1,20 @@
+{
+  "slug": "golden-hamster-concept",
+  "mode": "image-to-3d",
+  "image": "assets/meshy/concepts/golden-hamster-concept.png",
+  "params": {
+    "ai_model": "latest",
+    "model_type": "standard",
+    "topology": "triangle",
+    "target_polycount": 15000,
+    "should_remesh": true,
+    "pose_mode": "",
+    "target_formats": [
+      "glb"
+    ]
+  },
+  "task_id": "019f021e-1dfe-7758-9daa-62edfb19d01a",
+  "consumed_credits": 20,
+  "created_at": "2026-06-26T04:10:34.349Z",
+  "adopted": false
+}

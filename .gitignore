@@ -12,3 +12,5 @@ dist-ssr
 
 # Meshy raw dumps: heavy + don't give the assets away. Keep the .json archives.
 assets/meshy/raw/
+# Concept images: binary, regenerable from the committed .txt prompt.
+assets/meshy/concepts/*.png
