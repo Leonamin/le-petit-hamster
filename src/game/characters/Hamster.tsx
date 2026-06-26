@@ -16,7 +16,7 @@ import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
-import { playerPosition, playerState } from "../playerPosition";
+import { playerPosition, playerState, playerDebug } from "../playerPosition";
 import { resolveCollisions } from "../world";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
@@ -276,6 +276,13 @@ export function Hamster({ radius }: { radius: number }) {
     group.current.position.copy(pos);
     group.current.quaternion.copy(surfaceOrientation(up, face));
     playerPosition.copy(pos); // share with effects (rain, …)
+    // Debug snapshot for the CameraDebug overlay.
+    playerDebug.pos.copy(pos);
+    playerDebug.up.copy(up);
+    playerDebug.head.copy(head);
+    playerDebug.face.copy(face);
+    playerDebug.headDotUp = head.dot(up);
+    playerDebug.moving = moving;
 
     // Keep FOV in sync with the (live-tunable) config.
     if (camera instanceof PerspectiveCamera && camera.fov !== cam.fov) {
