@@ -1,0 +1,22 @@
+{
+  "slug": "golden-hamster",
+  "subject": "a cute chubby golden hamster standing on all four legs in a walking pose, plump rounded body held horizontal, all four paws flat on the ground, short stubby legs, small rounded ears, short tail",
+  "prompt": "a cute chubby golden hamster standing on all four legs in a walking pose, plump rounded body held horizontal, all four paws flat on the ground, short stubby legs, small rounded ears, short tail, minimalist 3D model, smooth shading, simplified realistic shape, solid colors, matte, soft rounded silhouette, cute stylized aesthetic, game asset",
+  "negative": "faceted, sharp edges, low-poly wireframe look, hyper-detailed, realistic fur texture, gritty, noisy, complex patterns",
+  "params": {
+    "mode": "preview",
+    "ai_model": "latest",
+    "model_type": "standard",
+    "topology": "triangle",
+    "target_polycount": 15000,
+    "should_remesh": true,
+    "pose_mode": "",
+    "target_formats": [
+      "glb"
+    ]
+  },
+  "task_id": "019f01ea-4449-7ef2-9809-591d32d18b31",
+  "consumed_credits": 20,
+  "created_at": "2026-06-26T03:13:55.138Z",
+  "adopted": false
+}

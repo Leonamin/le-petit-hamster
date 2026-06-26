@@ -5,3 +5,10 @@ dist-ssr
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Secrets — MESHY_API_KEY etc. Never commit.
+.env
+.claude/settings.local.json
+
+# Meshy raw dumps: heavy + don't give the assets away. Keep the .json archives.
+assets/meshy/raw/
