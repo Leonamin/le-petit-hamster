@@ -11,7 +11,17 @@ for it twice. Add to this freely — it is the most valuable doc over time.
   place). Fix: translate immediately along the input direction, but rotate the
   heading TOWARD it at a capped rate (`turnRate`), within the tangent plane
   about `up`. See `Hamster.tsx`.
-
+- **Camera heading must NOT chase the body heading.** With both `face ← move`
+  (capped turnRate) and `head ← face` (capped camFollow) wired together, the
+  input frame `move = ±head` becomes a moving target: as the camera lags the
+  body, the input direction rotates with the lag, and the body chases a
+  moving target forever. Net result on W→S: body reaches ~57° in 0.1s, never
+  the expected 180°, and after release keeps drifting (camera spins
+  indefinitely). The only stable equilibria of the loop are `face=head=0`
+  (no input) and `face=head=π/2` (the 90° trap). Fix: keep `head` world-fixed
+  (Mario Galaxy style) — only re-project onto the tangent plane each frame,
+  don't have it chase `face`. The camera POSITION still trails the body, so
+  framing is unchanged; only the heading becomes independent.
 ## Spherical movement
 - **Forward must be re-projected onto the tangent plane every frame.** As you
   walk across the curve, "up" changes; a stale forward drifts off-surface.

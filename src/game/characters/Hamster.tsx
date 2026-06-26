@@ -194,10 +194,11 @@ export function Hamster({ radius }: { radius: number }) {
     resolveCollisions(pos, radius);
     upAt(pos, up);
 
-    // Keep facing tangent, then let the camera heading trail it (decoupled, so
-    // low camFollow = strafe-style fixed camera, high = turn-to-face).
+    // Camera heading is world-fixed (Mario Galaxy style): the camera position
+    // trails the body, but the heading itself stays stable in world space.
+    // Re-project both onto the tangent plane so they stay surface-tangent as
+    // the body walks across the curve.
     face.addScaledVector(up, -face.dot(up)).normalize();
-    turnToward(head, face, up, cam.camFollow * dt);
     head.addScaledVector(up, -head.dot(up)).normalize();
 
     // Stand the hamster on the surface, facing its heading.

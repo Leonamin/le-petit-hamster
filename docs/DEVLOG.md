@@ -3,6 +3,24 @@
 Append-only. Newest at the top. One short entry per working session:
 what changed, and anything the next session should know.
 
+## 2026-06-26 — Camera no longer follows body rotation (W↔S chase fix)
+- Bug: pressing W then S never produced a clean 180° flip. Body rotated to
+  ~57° in 0.1s, ~249° after 0.5s, and the camera kept spinning after release.
+  Root cause was a closed-loop chase — `move = ±head`, `face ← move`,
+  `head ← face` — with no 180° equilibrium, only the 90° trap (face=-face).
+- Fix (Mario Galaxy style): `head` no longer chases `face`. Camera position
+  still follows the body (`pos + up·height - head·dist`), but `head` stays
+  in its initial world direction (only re-projected onto the tangent plane
+  each frame). Now `move = ±head` is a stable target and the body settles
+  cleanly at ±head.
+- Removed the `camFollow` tunable + O/P keys + debug row — it was a no-op
+  after this. localStorage key stays `lph-camera-v2`; old `camFollow` values
+  are simply ignored on next load.
+- Visual trade-off (worth noting): after W→S the camera does NOT rotate to
+  stay behind the body. The body can end up facing the camera, exactly like
+  Mario Galaxy. Use the observe-camera (V) if you want to inspect.
+- PITFALLS entry written so the next person doesn't try to "tune it out".
+
 ## 2026-06-24 — Small + brilliant sun (Earthrise feel, supersedes "bigger sun")
 - Reframed the goal with real angular sizes: from the Moon, Earth (~1.9°) looks
   ~3.7× the Sun (~0.53°). So a neighbour planet looking BIGGER than the sun is
