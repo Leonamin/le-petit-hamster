@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-// Meshy 3D for Le Petit Hamster. Two modes:
-//   text:  MESHY_API_KEY=... node scripts/meshy.mjs <slug> "<subject>" [a-pose|t-pose]
-//   image: MESHY_API_KEY=... node scripts/meshy.mjs <slug> --image <file> [a-pose|t-pose]
+// Meshy 3D for Le Petit Hamster. Three modes:
+//   text:      MESHY_API_KEY=... node scripts/meshy.mjs <slug> "<subject>" [a-pose|t-pose]
+//   image:     ... node scripts/meshy.mjs <slug> --image <file> [a-pose|t-pose]
+//   retexture: ... node scripts/meshy.mjs <slug> --retexture <model.glb> --style <image>
 //
-// Both emit an UNTEXTURED mesh (flat-matte house style — we colour in-engine).
-// Image mode reconstructs from a concept image's silhouette, so it follows the
-// shape you give it (fixes text-to-3D's limb-count hallucination on quadrupeds
-// and lets you lock the cute style in 2D first). Downloads the .glb + thumbnail
-// to the gitignored raw dump and writes a committed <slug>.json archive.
+// text/image emit an UNTEXTURED mesh (flat-matte house style — colour in-engine).
+// Image mode reconstructs from a concept silhouette (fixes text-to-3D's limb-count
+// hallucination on quadrupeds). Retexture bakes colour onto an existing mesh from a
+// style image (remove_lighting → flat base colour, no shiny PBR) — use it to turn a
+// grey "clay" preview into a coloured asset while keeping the geometry.
+// Downloads .glb + thumbnail to the gitignored raw dump + a committed <slug>.json.
 //
-// Env overrides (both modes): MESHY_MODEL_TYPE=standard|lowpoly, MESHY_POLYCOUNT=<int>.
-// lowpoly + a low polycount strips realistic muscle detail toward a simpler look.
+// Env overrides (text/image): MESHY_MODEL_TYPE=standard|lowpoly, MESHY_POLYCOUNT=<int>.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +19,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const API_TEXT = "https://api.meshy.ai/openapi/v2/text-to-3d";
 const API_IMAGE = "https://api.meshy.ai/openapi/v1/image-to-3d";
+const API_RETEX = "https://api.meshy.ai/openapi/v1/retexture";
 
 const STYLE = "minimalist 3D model, smooth shading, simplified realistic shape, solid colors, matte, soft rounded silhouette, cute stylized aesthetic, game asset";
 const NEGATIVE = "faceted, sharp edges, low-poly wireframe look, hyper-detailed, realistic fur texture, gritty, noisy, complex patterns";
@@ -30,36 +32,52 @@ if (!KEY) die("set MESHY_API_KEY");
 
 const args = process.argv.slice(2);
 const slug = args[0];
-const isImage = args[1] === "--image";
-const imagePath = isImage ? args[2] : null;
-const subject = isImage ? null : args[1];
-const pose = isImage ? args[3] : args[2];
-if (!slug || (isImage ? !imagePath : !subject)) {
-  die('usage: meshy.mjs <slug> "<subject>" [pose]  |  meshy.mjs <slug> --image <file> [pose]');
+const flag = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; };
+const imagePath = args[1] === "--image" ? args[2] : null;
+const retexModel = args[1] === "--retexture" ? args[2] : null;
+const stylePath = flag("--style");
+const subject = imagePath || retexModel ? null : args[1];
+const pose = imagePath || retexModel ? flag("--pose") : args[2];
+
+if (!slug || (retexModel ? !stylePath : imagePath ? !imagePath : !subject)) {
+  die('usage: meshy.mjs <slug> "<subject>" [pose] | <slug> --image <file> [--pose p] | <slug> --retexture <glb> --style <image>');
 }
 if (pose && !["a-pose", "t-pose"].includes(pose)) die(`bad pose "${pose}" (a-pose|t-pose)`);
 
 const headers = { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" };
-const common = {
-  ai_model: "latest",
-  model_type: MODEL_TYPE,
-  topology: pose ? "quad" : "triangle", // quad deforms better if later rigged
-  target_polycount: POLYCOUNT,
-  should_remesh: true,
-  pose_mode: pose ?? "",
-  target_formats: ["glb"],
-};
 
 let endpoint, body, archive;
-if (isImage) {
-  endpoint = API_IMAGE;
-  body = { ...common, image_url: await dataUri(imagePath), should_texture: false };
-  archive = { mode: "image-to-3d", image: imagePath };
+if (retexModel) {
+  endpoint = API_RETEX;
+  body = {
+    model_url: await fileUri(retexModel),
+    image_style_url: await fileUri(stylePath),
+    ai_model: "latest",
+    enable_pbr: false,
+    remove_lighting: true, // flat base colour, no baked highlights
+    target_formats: ["glb"],
+  };
+  archive = { mode: "retexture", source: retexModel, style: stylePath };
 } else {
-  endpoint = API_TEXT;
-  const prompt = `${subject}, ${STYLE}`;
-  body = { ...common, mode: "preview", prompt };
-  archive = { mode: "text-to-3d", subject, prompt, negative: NEGATIVE };
+  const common = {
+    ai_model: "latest",
+    model_type: MODEL_TYPE,
+    topology: pose ? "quad" : "triangle", // quad deforms better if later rigged
+    target_polycount: POLYCOUNT,
+    should_remesh: true,
+    pose_mode: pose ?? "",
+    target_formats: ["glb"],
+  };
+  if (imagePath) {
+    endpoint = API_IMAGE;
+    body = { ...common, image_url: await fileUri(imagePath), should_texture: false };
+    archive = { mode: "image-to-3d", image: imagePath, params: common };
+  } else {
+    endpoint = API_TEXT;
+    const prompt = `${subject}, ${STYLE}`;
+    body = { ...common, mode: "preview", prompt };
+    archive = { mode: "text-to-3d", subject, prompt, negative: NEGATIVE, params: common };
+  }
 }
 
 const created = await api("POST", endpoint, body);
@@ -84,7 +102,7 @@ await download(task.thumbnail_url, resolve(rawDir, `${slug}.png`));
 await writeFile(
   resolve(ROOT, "assets/meshy", `${slug}.json`),
   JSON.stringify(
-    { slug, ...archive, params: common, task_id: id, ai_model: task.model,
+    { slug, ...archive, task_id: id, ai_model: task.model,
       consumed_credits: task.consumed_credits, created_at: new Date().toISOString(), adopted: false },
     null, 2,
   ) + "\n",
@@ -92,10 +110,11 @@ await writeFile(
 console.log(`\n✓ raw  → assets/meshy/raw/${slug}/${slug}.glb`);
 console.log(`✓ meta → assets/meshy/${slug}.json  (commit this)`);
 
-async function dataUri(path) {
-  const buf = await readFile(resolve(path)).catch(() => die(`can't read image ${path}`));
+async function fileUri(path) {
+  const buf = await readFile(resolve(path)).catch(() => die(`can't read ${path}`));
   const ext = extname(path).toLowerCase();
-  const mime = ext === ".png" ? "image/png" : ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : die(`image must be .png/.jpg (${ext})`);
+  const mime = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".glb": "model/gltf-binary" }[ext];
+  if (!mime) die(`unsupported file type ${ext}`);
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
 async function api(method, url, body) {

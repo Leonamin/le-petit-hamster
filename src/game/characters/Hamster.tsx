@@ -3,12 +3,9 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import { ElementRef, MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Box3,
-  Color,
-  Float32BufferAttribute,
   Group,
   MathUtils,
   Mesh,
-  MeshStandardMaterial,
   PerspectiveCamera,
   Raycaster,
   Sphere,
@@ -31,22 +28,14 @@ const ORIGIN = new Vector3(0, 0, 0);
  * MODEL_SCALE / MODEL_ROT / MODEL_OFFSET so it stands ~1 unit tall, sits with
  * its feet near y=0, and faces +Z (the walk direction). No file → primitives.
  */
-// Hero hamster from the concept → image-to-3D pipeline. Untextured mesh, so we
-// paint it in code: cream belly → gold back (height two-tone) + dark primitive
-// eyes/nose. Scale + ground are auto-fit from the bounding box. TUNE FACING
-// (MODEL_ROT) FIRST so the face points +Z, then nudge the eye/nose offsets
-// (placed in the +Z-front display frame; eyes mirror on ±x). Head looking too
-// big is a mesh proportion — fix it in the concept prompt + regenerate.
+// Hero hamster from the concept → image-to-3D → retexture pipeline. The glb
+// ships its own baked texture (golden fur, white belly, eyes), so we keep its
+// materials and just auto-fit scale + ground from the bounding box. Facing is
+// the only manual knob; head proportion is set by the concept (regenerate to
+// change it).
 const MODEL_URL: string | null = "/models/golden-hamster.glb";
 const MODEL_HEIGHT = 1.0; // stands ~1 unit tall
 const MODEL_ROT: [number, number, number] = [0, 0, 0]; // [0, Math.PI, 0] if it faces backward
-const MODEL_COLOR = "#e2bf73"; // pale golden back
-const BELLY_COLOR = "#f4ede0"; // cream underside
-const FEATURE_COLOR = "#241f1b"; // eyes + nose
-const EYE_OFFSET: [number, number, number] = [0.13, 0.58, 0.4]; // right eye (x mirrored)
-const NOSE_OFFSET: [number, number, number] = [0, 0.46, 0.52];
-const EYE_RADIUS = 0.05;
-const NOSE_RADIUS = 0.045;
 
 /**
  * The hamster: a code-built placeholder body + the spherical-walk controller
@@ -318,37 +307,15 @@ function HamsterModel({
   anim: MutableRefObject<{ speed: number }>;
 }) {
   const { scene } = useGLTF(url);
-  // Clone, paint a height two-tone (cream belly → gold back) via vertex colours,
-  // and auto-fit: scale so it's MODEL_HEIGHT tall and drop it so its feet sit at
-  // y=0 — robust to whatever scale Meshy emits.
+  // Clone (keeping the glb's baked texture) and auto-fit: scale so it's
+  // MODEL_HEIGHT tall and drop it so its feet sit at y=0 — robust to whatever
+  // scale Meshy emits.
   const { model, scale, footY } = useMemo(() => {
     const m = scene.clone(true);
-    m.updateMatrixWorld(true);
     const box = new Box3().setFromObject(m);
     const size = new Vector3();
     box.getSize(size);
-    const gold = new Color(MODEL_COLOR);
-    const cream = new Color(BELLY_COLOR);
-    const v = new Vector3();
-    const c = new Color();
-    m.traverse((o) => {
-      const mesh = o as Mesh;
-      if (!mesh.isMesh) return;
-      const pos = mesh.geometry.attributes.position;
-      const colors = new Float32Array(pos.count * 3);
-      for (let i = 0; i < pos.count; i++) {
-        v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
-        const t = MathUtils.smoothstep((v.y - box.min.y) / size.y, 0.3, 0.55);
-        c.copy(cream).lerp(gold, t);
-        colors[i * 3] = c.r;
-        colors[i * 3 + 1] = c.g;
-        colors[i * 3 + 2] = c.b;
-      }
-      mesh.geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
-      mesh.material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0 });
-    });
-    const scale = MODEL_HEIGHT / size.y;
-    return { model: m, scale, footY: box.min.y };
+    return { model: m, scale: MODEL_HEIGHT / size.y, footY: box.min.y };
   }, [scene]);
   const root = useRef<Group>(null!);
   const spd = useRef(0);
@@ -371,21 +338,6 @@ function HamsterModel({
         rotation={MODEL_ROT}
         position={[0, -footY * scale, 0]}
       />
-      {/* Eyes + nose: the mesh has no separate eye material, so overlay dark
-          primitives in the +Z-front display frame (tune offsets once MODEL_ROT
-          aims the face at +Z). */}
-      <mesh position={EYE_OFFSET}>
-        <sphereGeometry args={[EYE_RADIUS, 12, 12]} />
-        <meshStandardMaterial color={FEATURE_COLOR} roughness={0.4} />
-      </mesh>
-      <mesh position={[-EYE_OFFSET[0], EYE_OFFSET[1], EYE_OFFSET[2]]}>
-        <sphereGeometry args={[EYE_RADIUS, 12, 12]} />
-        <meshStandardMaterial color={FEATURE_COLOR} roughness={0.4} />
-      </mesh>
-      <mesh position={NOSE_OFFSET}>
-        <sphereGeometry args={[NOSE_RADIUS, 12, 12]} />
-        <meshStandardMaterial color={FEATURE_COLOR} roughness={0.4} />
-      </mesh>
     </group>
   );
 }

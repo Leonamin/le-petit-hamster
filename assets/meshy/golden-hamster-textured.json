@@ -1,0 +1,10 @@
+{
+  "slug": "golden-hamster-textured",
+  "mode": "retexture",
+  "source": "assets/meshy/raw/golden-hamster-concept/golden-hamster-concept.glb",
+  "style": "assets/meshy/concepts/golden-hamster-concept.png",
+  "task_id": "019f0281-c1ee-71d3-a29e-fa62b5640b49",
+  "consumed_credits": 10,
+  "created_at": "2026-06-26T05:59:12.274Z",
+  "adopted": false
+}
