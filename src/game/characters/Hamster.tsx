@@ -63,6 +63,7 @@ export function Hamster({ radius }: { radius: number }) {
   // with the world-fixed BASE_HEAD, this rotates the camera around the body
   // (BotW-style orbit) and rotates the input frame with it.
   const orbitYaw = useRef(0);
+  const prevOrbitYaw = useRef(0);
   const orbitDrag = useRef({ active: false, lastX: 0 });
   // Radians of horizontal mouse movement per pixel for the orbit drag.
   const ORBIT_SENSITIVITY = 0.005;
@@ -195,6 +196,7 @@ export function Hamster({ radius }: { radius: number }) {
       pos.set(0, radius, 0);
       face.set(0, 0, -1);
       head.set(0, 0, -1);
+      prevOrbitYaw.current = 0;
       snapCamera = true;
     }
 
@@ -202,23 +204,25 @@ export function Hamster({ radius }: { radius: number }) {
     const observing = game.observing;
 
     upAt(pos, up);
-    // The camera's heading defines the input frame: W = into the screen.
-    // Recompute head from BASE_HEAD + orbitYaw each frame (right-click drag
-    // accumulates yaw), then re-project onto the tangent plane so it stays
-    // surface-tangent as the body walks across the curve. While observing
-    // (free fly mode) FlyControls owns the camera — leave head at BASE_HEAD
-    // so the body still has a defined input frame when the user releases V.
+    // Camera heading: preserve from the previous frame and only rotate by the
+    // orbitYaw DELTA. Recomputing from BASE_HEAD every frame degenerates at
+    // sphere poles where up ∥ BASE_HEAD (the projection collapses to zero and
+    // tiny up jitter causes huge head swings → camera spins).
     if (observing) {
-      head.copy(BASE_HEAD);
+      // On the first frame of observing, snap head to a clean direction so
+      // FlyControls gets a sane starting orientation.
+      if (!wasObserving.current) head.copy(BASE_HEAD);
+      prevOrbitYaw.current = orbitYaw.current; // don't accumulate delta while free
     } else {
-      head.copy(BASE_HEAD).applyAxisAngle(up, orbitYaw.current);
+      const dYaw = orbitYaw.current - prevOrbitYaw.current;
+      if (dYaw !== 0) head.applyAxisAngle(up, dYaw);
+      prevOrbitYaw.current = orbitYaw.current;
     }
     head.addScaledVector(up, -head.dot(up));
-    // At sphere poles where up ∥ BASE_HEAD the projection collapses to zero.
-    // Fall back to a stable tangent so the heading never degenerates to NaN.
     if (head.lengthSq() < 1e-4) {
       const ref = Math.abs(up.y) < 0.9 ? _VEC3_Y : _VEC3_X;
-      head.crossVectors(up, ref).normalize().applyAxisAngle(up, orbitYaw.current);
+      head.crossVectors(up, ref).normalize();
+      if (!observing) head.applyAxisAngle(up, orbitYaw.current);
     } else {
       head.normalize();
     }
@@ -270,7 +274,13 @@ export function Hamster({ radius }: { radius: number }) {
     // Re-project both onto the tangent plane so they stay surface-tangent as
     // the body walks across the curve.
     face.addScaledVector(up, -face.dot(up)).normalize();
-    head.addScaledVector(up, -head.dot(up)).normalize();
+    head.addScaledVector(up, -head.dot(up));
+    if (head.lengthSq() < 1e-4) {
+      const ref = Math.abs(up.y) < 0.9 ? _VEC3_Y : _VEC3_X;
+      head.crossVectors(up, ref).normalize();
+    } else {
+      head.normalize();
+    }
 
     // Stand the hamster on the surface, facing its heading.
     group.current.position.copy(pos);
