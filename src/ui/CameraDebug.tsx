@@ -14,7 +14,6 @@ const ROWS: { key: TunableKey; label: string; keys: string }[] = [
   { key: "lookUp", label: "시선 높이", keys: "; / '" },
   { key: "fov", label: "시야각 FOV", keys: ", / ." },
   { key: "turnRate", label: "몸 선회", keys: "9 / 0" },
-  { key: "camFollow", label: "카메라 추적", keys: "O / P" },
 ];
 
 export function CameraDebug() {
@@ -26,7 +25,6 @@ export function CameraDebug() {
   const lookUp = useCameraConfig((s) => s.lookUp);
   const fov = useCameraConfig((s) => s.fov);
   const turnRate = useCameraConfig((s) => s.turnRate);
-  const camFollow = useCameraConfig((s) => s.camFollow);
 
   const orbitOn = useSystemConfig((s) => s.orbitOn);
   const showOrbits = useSystemConfig((s) => s.showOrbits);
@@ -38,8 +36,8 @@ export function CameraDebug() {
     return <div className="debug-toggle">C — 디버그 · V 관찰 · K 공전 · L 궤도선</div>;
   }
 
-  const values = { distance, height, lookUp, fov, turnRate, camFollow };
-  const configLine = `distance:${distance} height:${height} lookUp:${lookUp} fov:${fov} turnRate:${turnRate} camFollow:${camFollow}`;
+  const values = { distance, height, lookUp, fov, turnRate };
+  const configLine = `distance:${distance} height:${height} lookUp:${lookUp} fov:${fov} turnRate:${turnRate}`;
 
   return (
     <div className="debug-panel">

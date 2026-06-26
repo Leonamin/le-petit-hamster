@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
-import { ElementRef, MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
+import { FlyControls, useGLTF } from "@react-three/drei";
+import { MutableRefObject, Suspense, useEffect, useMemo, useRef } from "react";
 import {
   Box3,
   Group,
@@ -21,6 +21,10 @@ import { resolveCollisions } from "../world";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
 const ORIGIN = new Vector3(0, 0, 0);
+// World-fixed compass heading the camera uses as its forward direction when
+// orbitYaw = 0. Right-click drag rotates `head` around the planet's up axis
+// from this base each frame (see useFrame).
+const BASE_HEAD = new Vector3(0, 0, -1);
 
 /**
  * To use a real hamster model instead of the primitive one: drop a `.glb` into
@@ -47,11 +51,18 @@ export function Hamster({ radius }: { radius: number }) {
   const group = useRef<Group>(null!);
   const keys = useKeyboard();
   const { camera, gl } = useThree();
-  // Free observation camera: when on, the follow-cam detaches and OrbitControls
-  // takes over. Subscribed (reactive) so we can mount/unmount the controls.
+  // Free observation camera: when on, the follow-cam detaches and FlyControls
+  // takes over (true free fly — not locked to the hamster). Subscribed
+  // (reactive) so we can mount/unmount the controls.
   const observing = useGame((s) => s.observing);
   const wasObserving = useRef(false);
-  const orbit = useRef<ElementRef<typeof OrbitControls>>(null);
+  // Right-click drag accumulates yaw around the planet's up axis. Combined
+  // with the world-fixed BASE_HEAD, this rotates the camera around the body
+  // (BotW-style orbit) and rotates the input frame with it.
+  const orbitYaw = useRef(0);
+  const orbitDrag = useRef({ active: false, lastX: 0 });
+  // Radians of horizontal mouse movement per pixel for the orbit drag.
+  const ORBIT_SENSITIVITY = 0.005;
 
   // Latest active-planet radius, read inside the render loop.
   const radiusRef = useRef(radius);
@@ -72,7 +83,7 @@ export function Hamster({ radius }: { radius: number }) {
     };
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return; // left button only
-      // In observation mode the drag belongs to OrbitControls — don't capture it.
+      // In observation mode the drag belongs to FlyControls — don't capture it.
       if (useGame.getState().observing) return;
       pointer.current.active = true;
       toNDC(e);
@@ -88,15 +99,55 @@ export function Hamster({ radius }: { radius: number }) {
     const onUp = () => {
       pointer.current.active = false;
     };
+
+    // Right-click drag orbits the camera around the hamster (BotW-style).
+    // Disabled while observing (free mode) — FlyControls owns the camera.
+    const onRightDown = (e: PointerEvent) => {
+      if (e.button !== 2) return; // right button only
+      e.preventDefault();
+      if (useGame.getState().observing) return;
+      orbitDrag.current.active = true;
+      orbitDrag.current.lastX = e.clientX;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        /* best-effort */
+      }
+    };
+    const onRightMove = (e: PointerEvent) => {
+      if (!orbitDrag.current.active) return;
+      const dx = e.clientX - orbitDrag.current.lastX;
+      orbitDrag.current.lastX = e.clientX;
+      orbitYaw.current += dx * ORBIT_SENSITIVITY;
+    };
+    const onRightUp = () => {
+      orbitDrag.current.active = false;
+    };
+    const onContextMenu = (e: MouseEvent) => {
+      // Suppress browser context menu on canvas right-click so the drag
+      // feels native to the orbit gesture.
+      e.preventDefault();
+    };
+
     el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     el.addEventListener("pointercancel", onUp);
+    el.addEventListener("pointerdown", onRightDown);
+    el.addEventListener("pointermove", onRightMove);
+    window.addEventListener("pointerup", onRightUp);
+    el.addEventListener("pointercancel", onRightUp);
+    el.addEventListener("contextmenu", onContextMenu);
     return () => {
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       el.removeEventListener("pointercancel", onUp);
+      el.removeEventListener("pointerdown", onRightDown);
+      el.removeEventListener("pointermove", onRightMove);
+      window.removeEventListener("pointerup", onRightUp);
+      el.removeEventListener("pointercancel", onRightUp);
+      el.removeEventListener("contextmenu", onContextMenu);
     };
   }, [gl]);
 
@@ -145,15 +196,24 @@ export function Hamster({ radius }: { radius: number }) {
     }
 
     const cam = useCameraConfig.getState();
+    const observing = game.observing;
 
     upAt(pos, up);
     // The camera's heading defines the input frame: W = into the screen.
-    // Keep it tangent to the surface every frame (up drifts as we walk).
+    // Recompute head from BASE_HEAD + orbitYaw each frame (right-click drag
+    // accumulates yaw), then re-project onto the tangent plane so it stays
+    // surface-tangent as the body walks across the curve. While observing
+    // (free fly mode) FlyControls owns the camera — leave head at BASE_HEAD
+    // so the body still has a defined input frame when the user releases V.
+    if (observing) {
+      head.copy(BASE_HEAD);
+    } else {
+      head.copy(BASE_HEAD).applyAxisAngle(up, orbitYaw.current);
+    }
     head.addScaledVector(up, -head.dot(up)).normalize();
     right.copy(head).cross(up).normalize(); // camHeading × up = right
 
     // Movement is frozen while talking, leaving, or in observation mode.
-    const observing = game.observing;
     const frozen = game.dialogue !== null || game.departing || observing;
 
     move.set(0, 0, 0);
@@ -194,10 +254,11 @@ export function Hamster({ radius }: { radius: number }) {
     resolveCollisions(pos, radius);
     upAt(pos, up);
 
-    // Keep facing tangent, then let the camera heading trail it (decoupled, so
-    // low camFollow = strafe-style fixed camera, high = turn-to-face).
+    // Camera heading is world-fixed (Mario Galaxy style): the camera position
+    // trails the body, but the heading itself stays stable in world space.
+    // Re-project both onto the tangent plane so they stay surface-tangent as
+    // the body walks across the curve.
     face.addScaledVector(up, -face.dot(up)).normalize();
-    turnToward(head, face, up, cam.camFollow * dt);
     head.addScaledVector(up, -head.dot(up)).normalize();
 
     // Stand the hamster on the surface, facing its heading.
@@ -211,23 +272,21 @@ export function Hamster({ radius }: { radius: number }) {
       camera.updateProjectionMatrix();
     }
 
-    // While observing, OrbitControls owns the camera — leave it alone. On the
-    // first frame of observing, reset `up` to world-up so the orbit is upright;
-    // on the frame we exit, snap the follow-cam back instead of lerping from afar.
+    // While observing, FlyControls owns the camera (true free fly — the
+    // camera is no longer locked to the hamster). On the first frame of
+    // observing, drop the camera to a reasonable starting spot above and
+    // behind the hamster so it isn't pointing at empty space, and reset
+    // `camera.up` to world-up so the fly controls feel upright. On the frame
+    // we exit, snap the follow-cam back instead of lerping from wherever the
+    // free-fly camera ended up.
     if (observing) {
       if (!wasObserving.current) {
         camera.up.set(0, 1, 0);
-        // Frame the hamster: drop the camera behind + above it so the character
-        // is in view immediately instead of pointing at empty space.
         camPos.copy(pos).addScaledVector(head, -3).addScaledVector(up, 2);
         camera.position.copy(camPos);
+        camera.lookAt(pos);
       }
       wasObserving.current = true;
-      // Orbit the hamster, not the planet centre, so you can inspect it close up.
-      if (orbit.current) {
-        orbit.current.target.copy(pos);
-        orbit.current.update();
-      }
       return;
     }
     if (wasObserving.current) {
@@ -275,19 +334,14 @@ export function Hamster({ radius }: { radius: number }) {
         )}
       </group>
 
-      {/* Free observation camera — orbit the hamster to inspect it, or pull back
-          to take in the planet/sky. */}
+      {/* Free observation camera — FlyControls: WASD/QE fly, left-drag look.
+          The camera is NOT locked to the hamster; the player can fly anywhere
+          to inspect the world from any angle. */}
       {observing && (
-        <OrbitControls
-          ref={orbit}
-          makeDefault
-          enablePan
-          enableDamping
-          dampingFactor={0.08}
-          rotateSpeed={0.6}
-          zoomSpeed={0.8}
-          minDistance={0.5}
-          maxDistance={radius * 8}
+        <FlyControls
+          movementSpeed={Math.max(6, radius * 0.4)}
+          rollSpeed={0.4}
+          dragToLook
         />
       )}
     </>

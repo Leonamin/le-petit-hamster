@@ -14,8 +14,7 @@ export type TunableKey =
   | "height"
   | "lookUp"
   | "fov"
-  | "turnRate"
-  | "camFollow";
+  | "turnRate";
 
 interface CameraConfig {
   /** Distance the camera trails behind the hamster (world units). */
@@ -28,8 +27,6 @@ interface CameraConfig {
   fov: number;
   /** How fast the hamster's body turns to face its movement direction (rad/s). */
   turnRate: number;
-  /** How fast the camera trails the body's facing (rad/s). 0 = fixed strafe. */
-  camFollow: number;
 
   debug: boolean;
   toggleDebug: () => void;
@@ -43,7 +40,6 @@ const DEFAULTS: Record<TunableKey, number> = {
   lookUp: 2.0,
   fov: 60,
   turnRate: 10,
-  camFollow: 2.5,
 };
 
 // [min, max] clamp ranges for each tunable.
@@ -53,7 +49,6 @@ const RANGES: Record<TunableKey, [number, number]> = {
   lookUp: [-2, 8],
   fov: [30, 90],
   turnRate: [0.5, 16],
-  camFollow: [0, 16],
 };
 
 const clamp = (v: number, [lo, hi]: [number, number]) =>
@@ -80,7 +75,6 @@ export const useCameraConfig = create<CameraConfig>()(
         lookUp: s.lookUp,
         fov: s.fov,
         turnRate: s.turnRate,
-        camFollow: s.camFollow,
       }),
     },
   ),
