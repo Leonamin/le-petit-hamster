@@ -36,6 +36,15 @@ Lock the cute look in 2D first (cheaper, full control), then convert. Head/pose/
 proportions are set by the concept — to change them, edit the concept prompt and
 regenerate, not the mesh.
 
+## Refine: bake colour onto a grey mesh (optional)
+An untextured preview is a grey "clay" lump. To bake real colour (fur, belly,
+eyes) while keeping the geometry, retexture it from the concept image:
+```sh
+node --env-file=.env scripts/meshy.mjs <slug> --retexture <model.glb> --style <concept.png>
+```
+`remove_lighting` gives a flat base colour (no shiny PBR) that fits the matte
+house style. The result ships its own texture — adopt it as a textured glb below.
+
 ## Tuning knobs
 - `MESHY_MODEL_TYPE=standard|lowpoly` and `MESHY_POLYCOUNT=<int>` env overrides
   (lowpoly + low polycount strips realistic detail).
@@ -49,10 +58,10 @@ gitignored; their `.txt` prompt is committed. See `assets/meshy/README.md`.
 ## Adopt into the game
 Copy the chosen `.glb` → `public/models/` (**commit it** — the deployed build
 loads it). Load it the way `src/game/characters/Hamster.tsx` does: `HamsterModel`
-auto-fits scale + ground from the bounding box, paints a height two-tone via
-vertex colours, and overlays dark primitive eyes/nose (the mesh has no separate
-eye material). Tune `MODEL_ROT` (face → +Z) first, then the eye/nose offsets.
-Set `"adopted": true` in the `<slug>.json`.
+auto-fits scale + ground from the bounding box. A **textured** glb (post-refine)
+keeps its baked materials as-is; an **untextured** one needs colouring in-engine
+(vertex two-tone + primitive eyes — see git history of HamsterModel). Tune
+`MODEL_ROT` (face → +Z). Set `"adopted": true` in the `<slug>.json`.
 
 ## Animation
 Characters are animated **procedurally in code** on the kinematic controller
