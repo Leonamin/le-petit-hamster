@@ -81,7 +81,7 @@ export function RainPlanet({ radius }: PlanetProps) {
       <AtmosphereHaze color="#aac4d4" daySky="#2a3a47" maxDensity={0.02} />
 
       {/* The planet body */}
-      <mesh receiveShadow>
+      <mesh receiveShadow castShadow>
         <sphereGeometry args={[radius, 64, 64]} />
         <meshStandardMaterial color="#3f5a52" roughness={1} metalness={0} />
       </mesh>
@@ -107,7 +107,7 @@ export function RainPlanet({ radius }: PlanetProps) {
 
       <group ref={rocks}>
         {[0, 1, 2, 3].map((i) => (
-          <mesh key={i} scale={0.4 + (i % 2) * 0.2}>
+          <mesh key={i} scale={0.4 + (i % 2) * 0.2} castShadow receiveShadow>
             <icosahedronGeometry args={[1, 0]} />
             <meshStandardMaterial color="#4a5d63" roughness={1} flatShading />
           </mesh>

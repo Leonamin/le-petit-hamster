@@ -331,7 +331,7 @@ function HamsterModel({
   });
 
   return (
-    <group ref={root}>
+      <group ref={root} castShadow receiveShadow>
       <primitive
         object={model}
         scale={scale}
@@ -398,7 +398,7 @@ function HamsterMesh({ anim }: { anim: MutableRefObject<{ speed: number }> }) {
   return (
     <group ref={root}>
       {/* Chubby round body — sits just above the surface (feet near origin). */}
-      <mesh ref={body} position={[0, 0.46, 0]} scale={[0.64, 0.56, 0.74]} castShadow>
+      <mesh ref={body} position={[0, 0.46, 0]} scale={[0.64, 0.56, 0.74]} castShadow receiveShadow>
         <sphereGeometry args={[1, 22, 18]} />
         <meshStandardMaterial color="#d9a86a" roughness={0.85} />
       </mesh>
@@ -411,7 +411,7 @@ function HamsterMesh({ anim }: { anim: MutableRefObject<{ speed: number }> }) {
       {/* Head group (nods); holds the face, cheeks, eyes, nose, ears, whiskers.
           Local +Z is "front". */}
       <group ref={head}>
-        <mesh position={[0, 0.56, 0.42]} scale={0.4} castShadow>
+        <mesh position={[0, 0.56, 0.42]} scale={0.4} castShadow receiveShadow>
           <sphereGeometry args={[1, 22, 18]} />
           <meshStandardMaterial color="#e2b87e" roughness={0.85} />
         </mesh>
