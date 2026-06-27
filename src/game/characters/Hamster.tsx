@@ -16,7 +16,7 @@ import { CAM_SMOOTH, WALK_SPEED } from "../config";
 import { useCameraConfig } from "../cameraConfig";
 import { useKeyboard } from "../systems/useKeyboard";
 import { useGame } from "../state";
-import { playerPosition, playerState } from "../playerPosition";
+import { playerPosition, playerState, playerDebug } from "../playerPosition";
 import { resolveCollisions } from "../world";
 import { surfaceOrientation, turnToward, upAt } from "../../lib/sphere";
 
@@ -25,6 +25,9 @@ const ORIGIN = new Vector3(0, 0, 0);
 // orbitYaw = 0. Right-click drag rotates `head` around the planet's up axis
 // from this base each frame (see useFrame).
 const BASE_HEAD = new Vector3(0, 0, -1);
+// Stable fallback axes for the pole-degeneracy guard (line ~211).
+const _VEC3_Y = new Vector3(0, 1, 0);
+const _VEC3_X = new Vector3(1, 0, 0);
 
 /**
  * To use a real hamster model instead of the primitive one: drop a `.glb` into
@@ -60,6 +63,7 @@ export function Hamster({ radius }: { radius: number }) {
   // with the world-fixed BASE_HEAD, this rotates the camera around the body
   // (BotW-style orbit) and rotates the input frame with it.
   const orbitYaw = useRef(0);
+  const prevOrbitYaw = useRef(0);
   const orbitDrag = useRef({ active: false, lastX: 0 });
   // Radians of horizontal mouse movement per pixel for the orbit drag.
   const ORBIT_SENSITIVITY = 0.005;
@@ -192,6 +196,7 @@ export function Hamster({ radius }: { radius: number }) {
       pos.set(0, radius, 0);
       face.set(0, 0, -1);
       head.set(0, 0, -1);
+      prevOrbitYaw.current = 0;
       snapCamera = true;
     }
 
@@ -199,18 +204,28 @@ export function Hamster({ radius }: { radius: number }) {
     const observing = game.observing;
 
     upAt(pos, up);
-    // The camera's heading defines the input frame: W = into the screen.
-    // Recompute head from BASE_HEAD + orbitYaw each frame (right-click drag
-    // accumulates yaw), then re-project onto the tangent plane so it stays
-    // surface-tangent as the body walks across the curve. While observing
-    // (free fly mode) FlyControls owns the camera — leave head at BASE_HEAD
-    // so the body still has a defined input frame when the user releases V.
+    // Camera heading: preserve from the previous frame and only rotate by the
+    // orbitYaw DELTA. Recomputing from BASE_HEAD every frame degenerates at
+    // sphere poles where up ∥ BASE_HEAD (the projection collapses to zero and
+    // tiny up jitter causes huge head swings → camera spins).
     if (observing) {
-      head.copy(BASE_HEAD);
+      // On the first frame of observing, snap head to a clean direction so
+      // FlyControls gets a sane starting orientation.
+      if (!wasObserving.current) head.copy(BASE_HEAD);
+      prevOrbitYaw.current = orbitYaw.current; // don't accumulate delta while free
     } else {
-      head.copy(BASE_HEAD).applyAxisAngle(up, orbitYaw.current);
+      const dYaw = orbitYaw.current - prevOrbitYaw.current;
+      if (dYaw !== 0) head.applyAxisAngle(up, dYaw);
+      prevOrbitYaw.current = orbitYaw.current;
     }
-    head.addScaledVector(up, -head.dot(up)).normalize();
+    head.addScaledVector(up, -head.dot(up));
+    if (head.lengthSq() < 1e-4) {
+      const ref = Math.abs(up.y) < 0.9 ? _VEC3_Y : _VEC3_X;
+      head.crossVectors(up, ref).normalize();
+      if (!observing) head.applyAxisAngle(up, orbitYaw.current);
+    } else {
+      head.normalize();
+    }
     right.copy(head).cross(up).normalize(); // camHeading × up = right
 
     // Movement is frozen while talking, leaving, or in observation mode.
@@ -259,12 +274,25 @@ export function Hamster({ radius }: { radius: number }) {
     // Re-project both onto the tangent plane so they stay surface-tangent as
     // the body walks across the curve.
     face.addScaledVector(up, -face.dot(up)).normalize();
-    head.addScaledVector(up, -head.dot(up)).normalize();
+    head.addScaledVector(up, -head.dot(up));
+    if (head.lengthSq() < 1e-4) {
+      const ref = Math.abs(up.y) < 0.9 ? _VEC3_Y : _VEC3_X;
+      head.crossVectors(up, ref).normalize();
+    } else {
+      head.normalize();
+    }
 
     // Stand the hamster on the surface, facing its heading.
     group.current.position.copy(pos);
     group.current.quaternion.copy(surfaceOrientation(up, face));
     playerPosition.copy(pos); // share with effects (rain, …)
+    // Debug snapshot for the CameraDebug overlay.
+    playerDebug.pos.copy(pos);
+    playerDebug.up.copy(up);
+    playerDebug.head.copy(head);
+    playerDebug.face.copy(face);
+    playerDebug.headDotUp = head.dot(up);
+    playerDebug.moving = moving;
 
     // Keep FOV in sync with the (live-tunable) config.
     if (camera instanceof PerspectiveCamera && camera.fov !== cam.fov) {
